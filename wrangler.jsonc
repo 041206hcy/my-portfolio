@@ -15,7 +15,7 @@
     {
       "binding": "DB",
       "database_name": "photosite",
-      "database_id": "00000000-0000-0000-0000-000000000000"
+      "database_id": "0540344a-dddc-4190-9547-2fe085ab75fc"
     }
   ],
   // 照片文件：两档网页尺寸（缩略图 + 1600px）直接存在 D1 的 blobs 表里，不需要 R2 绑定。
