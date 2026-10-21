@@ -1,0 +1,9 @@
+{
+  // Cloudflare Workers 配置：纯静态站点，直接把 public/ 目录作为静态资源发布
+  "name": "myfirst",
+  "compatibility_date": "2026-04-21",
+  "assets": {
+    "directory": "./public",
+    "not_found_handling": "404-page"
+  }
+}
