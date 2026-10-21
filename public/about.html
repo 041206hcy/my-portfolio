@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>关于我 · 黄翀与</title>
+<meta name="description" content="黄翀与：浙江农林大学地理信息科学，机载 LiDAR 点云处理、多光谱遥感、森林蓄积量 XGBoost 反演与无人机实景三维建模。项目、技能与联系方式。">
+<meta name="keywords" content="黄翀与,地理信息科学,机载LiDAR,多光谱遥感,杉木人工林,蓄积量估测,XGBoost,点云,无人机测绘,实景三维">
+<meta name="author" content="黄翀与">
+<!-- 正式域名：https://shackle0412.vip/ -->
+<link rel="canonical" href="https://shackle0412.vip/about">
+<meta property="og:type" content="profile">
+<meta property="og:title" content="关于我 · 黄翀与">
+<meta property="og:description" content="机载 LiDAR、多光谱遥感与森林蓄积量反演的个人项目作品集。">
+<meta property="og:url" content="https://shackle0412.vip/about">
+<meta property="og:image" content="https://shackle0412.vip/assets/og-cover.jpg">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "黄翀与",
+  "url": "https://shackle0412.vip/about",
+  "affiliation": { "@type": "CollegeOrUniversity", "name": "浙江农林大学 环境与资源学院" },
+  "knowsAbout": ["地理信息科学", "机载 LiDAR", "多光谱遥感", "森林蓄积量估测", "无人机实景三维"],
+  "sameAs": ["https://github.com/041206hcy"]
+}
+</script>
+</head>
+<body>
+
+<header class="nav" id="top">
+  <a class="nav__brand" href="/">← 黄翀与的旅程</a>
+  <nav class="nav__links">
+    <a href="#projects">项目</a>
+    <a href="#notes">笔记</a>
+    <a href="#skills">技能</a>
+    <a href="#about">关于</a>
+    <a href="#contact">联系</a>
+  </nav>
+</header>
+
+<main>
+
+  <section class="hero">
+    <div class="hero__avatar">
+      <img src="assets/avatar.jpg" alt="黄翀与的头像" onerror="this.remove();document.getElementById('fallback').hidden=false;">
+      <div id="fallback" class="hero__avatar-fallback" hidden>黄</div>
+    </div>
+    <h1 class="hero__name">黄翀与</h1>
+    <p class="hero__tagline">地理信息科学 · 遥感与 LiDAR · 森林资源定量估测</p>
+    <p class="hero__desc">
+      浙江农林大学环境与资源学院在读。研究方向是把<strong>机载 LiDAR 点云</strong>与<strong>多光谱影像</strong>融到一起，
+      用机器学习反演杉木人工林的蓄积量，并做无人机实景三维的成果表达。
+    </p>
+    <div class="hero__actions">
+      <a class="btn btn--primary" href="#projects">看项目</a>
+      <a class="btn" href="mailto:3077645837@qq.com">邮件联系</a>
+      <a class="btn" href="https://github.com/041206hcy" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </section>
+
+  <section class="section" id="projects">
+    <h2 class="section__title">项目</h2>
+
+    <article class="card">
+      <h3 class="card__title">融合机载 LiDAR 与多光谱的杉木人工林蓄积量 XGBoost 估测</h3>
+      <p class="card__meta">本科研究课题 · 2025.11 – 2026.05</p>
+      <p class="card__body">
+        <strong>做什么：</strong>以机载 LiDAR 点云与多光谱影像为数据源，构建样地级特征集，建立杉木人工林蓄积量反演模型。<br>
+        <strong>特征：</strong>高度分位数与离散度（H_mean / H_p95 / H_cv）、冠层覆盖度与回波比（CC_ratio、D1 / D5_ratio）、
+        冠层结构（Gini、FHD、LAI_p95）、多光谱指数（NDVI、NGRDI、TGI）与纹理（Tex_var、Tex_Hom）。<br>
+        <strong>建模：</strong>VIF 共线性剔除 + Boruta / RFE 特征选择 → <strong>XGBoost</strong>；用分层 k 折与空间块交叉验证
+        避免空间自相关导致的信息泄漏，并与多元线性回归、随机森林对照。<br>
+        <strong>评价与解释：</strong>R² / RMSE / MAE / rRMSE 配合残差空间诊断，最后用 <strong>SHAP</strong> 给出各特征的贡献方向与量级。
+      </p>
+      <ul class="tags">
+        <li>机载 LiDAR</li><li>多光谱</li><li>XGBoost</li><li>空间块交叉验证</li><li>SHAP</li>
+      </ul>
+    </article>
+
+    <article class="card">
+      <h3 class="card__title">无人机航测与实景三维建模</h3>
+      <p class="card__meta">技术支撑材料 · 2025 – 2026</p>
+      <p class="card__body">
+        <strong>思路：</strong>一次外业、两套载荷、三次质检、一份真值——同一架次同时完成 LiDAR 与多光谱数据获取，
+        把时相差异压到最小。<br>
+        <strong>作业链：</strong>航线规划（由成果 GSD 与点密度反算相对航高）→ 像控与检查点 → 仿地飞行 → 空三加密 →
+        密集匹配 → 点云分类与 CHM 生产 → 精度检核，共 7 个阶段；像控点与检查点各自独立观测两次（间隔 ≥60 min）核验几何精度。<br>
+        <strong>产出：</strong>去噪并分类后的 LAZ 点云、DEM / DTM、归一化点云与 <strong>0.5–1 m 的 CHM</strong>、
+        正射影像与实景三维模型，统一到同一坐标系（EPSG:4547）的规则网格上，供特征提取直接使用。
+      </p>
+      <ul class="tags">
+        <li>无人机航测</li><li>倾斜摄影</li><li>空三加密</li><li>CHM</li><li>实景三维</li>
+      </ul>
+    </article>
+
+    <article class="card">
+      <h3 class="card__title">样地调查数据处理与建模标签生产</h3>
+      <p class="card__meta">外业数据处理 · 2025 – 2026</p>
+      <p class="card__body">
+        <strong>每木检尺：</strong>逐株记录方位角、水平距、胸径、树高、冠幅与枝下高，按杉木二元立木材积式
+        （V = a·D<sup>b</sup>·H<sup>c</sup>）计算单株材积与断面积。<br>
+        <strong>样地汇总：</strong>按样地统计株数、断面积、平均胸径 / 树高与优势高，换算每公顷断面积与
+        <strong>每公顷蓄积量</strong>，作为建模真值。<br>
+        <strong>质量控制：</strong>样地因子表与每木检尺表联动校验、异常值检查，最终输出「样地—特征矩阵」
+        （末列为真值与建模集标记），直接对接建模环节。
+      </p>
+      <ul class="tags">
+        <li>每木检尺</li><li>材积计算</li><li>异常值检查</li><li>样地—特征矩阵</li>
+      </ul>
+      <!-- 复制上面这段 article 即可新增项目卡片 -->
+    </article>
+  </section>
+
+  <section class="section" id="notes">
+    <h2 class="section__title">笔记</h2>
+    <div class="notes">
+      <a class="note" href="notes/cloudflare-deploy.html">
+        <div class="note__date">2026-10-21</div>
+        <h3 class="note__title">用 Cloudflare 免费托管静态站点：从 GitHub 仓库到自己的域名</h3>
+        <p class="note__excerpt">不买服务器、不备案，把静态站点放到 Cloudflare Workers 上，绑一个自己的域名并开启 HTTPS —— 以及中途踩到的 DNS 解析、NS 替换与构建失败的坑。</p>
+      </a>
+      <a class="note" href="notes/lidar-to-feature-matrix.html">
+        <div class="note__date">2026-10-21</div>
+        <h3 class="note__title">从原始点云到样地特征矩阵：无人机 LiDAR 测林分的 7 个阶段</h3>
+        <p class="note__excerpt">一次外业、两套载荷、三次质检、一份真值 —— 记录 LiDAR 链路与摄影测量链路如何汇合到同一个规则网格，以及每个阶段真正要卡住的判据。</p>
+      </a>
+    </div>
+    <!-- 新增一篇笔记：复制上面任意一个 <a class="note"> 块，改 href / 日期 / 标题 / 摘要，并在 notes/ 目录下放对应的 .html -->
+  </section>
+
+  <section class="section" id="skills">
+    <h2 class="section__title">技能</h2>
+    <div class="skills">
+      <div class="skills__group">
+        <h4>数据与建模</h4>
+        <ul class="tags"><li>Python</li><li>scikit-learn</li><li>XGBoost</li><li>SHAP</li><li>pandas / numpy</li></ul>
+      </div>
+      <div class="skills__group">
+        <h4>遥感与点云</h4>
+        <ul class="tags"><li>LiDAR 点云处理</li><li>CHM / 高度分位数</li><li>多光谱指数</li><li>CloudCompare</li><li>QGIS</li></ul>
+      </div>
+      <div class="skills__group">
+        <h4>测绘与可视化</h4>
+        <ul class="tags"><li>无人机倾斜摄影</li><li>实景三维建模</li><li>ArcGIS</li><li>成果制图</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="about">
+    <h2 class="section__title">关于</h2>
+    <p class="section__text">
+      我是黄翀与，浙江农林大学环境与资源学院地理信息科学方向在读。
+      比起"跑通一个模型"，我更在意一件事：<strong>这条精度曲线背后，林地到底长什么样</strong>。
+      所以我的工作基本长在野外样地和点云之间——外业测回来的每一棵样木，最终都要能在模型里找到它的位置。
+    </p>
+    <p class="section__text">
+      目前关注：森林参数遥感反演、LiDAR 与光学影像的特征级融合、空间交叉验证的可靠性问题、以及三维成果的可视化表达。
+    </p>
+  </section>
+
+  <section class="section" id="contact">
+    <h2 class="section__title">联系</h2>
+    <p class="section__text">
+      邮箱：<a href="mailto:3077645837@qq.com">3077645837@qq.com</a><br>
+      GitHub：<a href="https://github.com/041206hcy" target="_blank" rel="noopener">github.com/041206hcy</a>
+    </p>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <p>© <span id="year">2026</span> 黄翀与 · 本站为静态站点，托管于 Cloudflare Workers</p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

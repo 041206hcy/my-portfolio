@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理 · 黄翀与的旅程</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="vendor/leaflet.css">
+</head>
+<body class="page--wide page--admin">
+
+<header class="nav" id="top">
+  <a class="nav__brand" href="/">← 黄翀与的旅程</a>
+  <nav class="nav__links">
+    <a href="#upload">上传</a>
+    <a href="#pending">待标点</a>
+    <a href="#manage">照片管理</a>
+    <a href="#trips">旅程</a>
+  </nav>
+</header>
+
+<main>
+
+  <section class="section" id="upload">
+    <h2 class="section__title">上传照片</h2>
+    <p class="section__text">
+      选好图后会在<b>你自己的浏览器里</b>压成两档再上传：缩略图长边 400px、网页图长边 1600px（WebP）。
+      原图不上传，留在你硬盘里。拍摄时间、位置会尽量从照片的 EXIF 里自动读出来。
+    </p>
+    <div class="drop" id="drop">
+      <input type="file" id="file" accept="image/*" multiple hidden>
+      <p class="drop__lead">把照片拖到这里，或 <button class="btn btn--primary" type="button" id="pick">选择照片</button></p>
+      <p class="drop__hint" id="drop-hint">一次可以选一批；传完会自动出现在下面。</p>
+    </div>
+    <ul class="up-list" id="up-list"></ul>
+  </section>
+
+  <section class="section" id="pending">
+    <h2 class="section__title">待标点 <span class="badge" id="pending-count">0</span></h2>
+    <p class="section__text">
+      没有 GPS 的照片都落在这里（微信/QQ 传过的图会被抹掉 EXIF，相机照片也常常没有位置）。
+      在下面地图上点一下 → 写个地名 → 给选中的照片打点，一次能打一批。
+    </p>
+    <div class="bar">
+      <label class="bar__field">地名 <input type="text" id="place-input" placeholder="如：杭州 西湖"></label>
+      <button class="btn" type="button" id="pending-all">全选</button>
+      <button class="btn" type="button" id="pending-none">清空</button>
+      <button class="btn btn--primary" type="button" id="pin-apply" disabled>给选中的照片打点</button>
+    </div>
+    <div class="map map--admin" id="pin-map"></div>
+    <p class="section__text" id="pin-hint">还没在地图上选点。</p>
+    <div class="thumb-grid" id="pending-list"></div>
+  </section>
+
+  <section class="section" id="manage">
+    <h2 class="section__title">照片管理 <span class="badge" id="all-count">0</span></h2>
+    <p class="section__text">
+      可见性三档：<b>公开</b>（上首页、进 sitemap）、<b>仅链接</b>（不在列表里，拿到直链能看）、<b>仅自己</b>（只在管理页看得到）。
+    </p>
+    <div class="bar">
+      <select id="bulk-trip"><option value="">归入旅程…</option></select>
+      <button class="btn" type="button" id="bulk-trip-apply" disabled>归入</button>
+      <select id="bulk-vis">
+        <option value="">改可见性…</option>
+        <option value="public">公开</option>
+        <option value="link">仅链接可见</option>
+        <option value="private">仅自己</option>
+      </select>
+      <button class="btn" type="button" id="bulk-vis-apply" disabled>应用</button>
+      <button class="btn btn--danger" type="button" id="bulk-del" disabled>删除选中</button>
+      <button class="btn" type="button" id="all-all">全选</button>
+      <button class="btn" type="button" id="all-none">清空</button>
+    </div>
+    <div class="thumb-grid" id="all-list"></div>
+  </section>
+
+  <section class="section" id="trips">
+    <h2 class="section__title">旅程</h2>
+    <p class="section__text">一次旅程 = 名字 + 起止日期 + 一组照片。之后单次旅程页（地图 + 轨迹回放 + 票据）会挂在它下面。</p>
+    <form class="trip-form" id="trip-form">
+      <input type="hidden" id="trip-id">
+      <label class="bar__field">标题 <input type="text" id="trip-title" required placeholder="如：2026 夏 · 滇西北"></label>
+      <label class="bar__field">开始 <input type="date" id="trip-start"></label>
+      <label class="bar__field">结束 <input type="date" id="trip-end"></label>
+      <label class="bar__field">简介 <input type="text" id="trip-summary" placeholder="一句话，会显示在首页卡片上"></label>
+      <label class="bar__field">可见性
+        <select id="trip-vis">
+          <option value="public">公开</option>
+          <option value="link">仅链接</option>
+          <option value="private">仅自己</option>
+        </select>
+      </label>
+      <button class="btn btn--primary" type="submit" id="trip-save">保存旅程</button>
+      <button class="btn" type="button" id="trip-reset">清空表单</button>
+    </form>
+    <div class="trip-admin" id="trip-admin-list"></div>
+    <p class="section__text">
+      机票 / 火车票的 OCR 录入、真实轨迹（铁路线 / 大圆航线）在第二轮加进来，先把「传图 → 标点 → 地图上看到」这条链跑通。
+    </p>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <p>管理页 · 不参与搜索引擎收录 · 线上由 Cloudflare Access 挡在外面</p>
+</footer>
+
+<script src="vendor/leaflet.js"></script>
+<script src="vendor/exifr.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>

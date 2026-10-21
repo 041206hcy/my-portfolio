@@ -1,9 +1,27 @@
 {
-  // Cloudflare Workers 配置：纯静态站点，直接把 public/ 目录作为静态资源发布
+  // Cloudflare Worker：静态资源（public/）+ 照片站的少量接口（src/index.js）
+  // name 必须保持 myfirst，否则 Cloudflare 会当成一个新项目、线上地址会变
   "name": "myfirst",
   "compatibility_date": "2026-04-21",
+  "main": "src/index.js",
   "assets": {
     "directory": "./public",
+    "binding": "ASSETS",
     "not_found_handling": "404-page"
+  },
+  // 结构化数据：旅程 / 照片 / 票据 / 轨迹段
+  // database_id 先放占位 UUID（本地开发用不到真实 id）；等你在 Cloudflare 建好 D1 后换成真实值
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "photosite",
+      "database_id": "00000000-0000-0000-0000-000000000000"
+    }
+  ],
+  // 照片文件：两档网页尺寸（缩略图 + 1600px）直接存在 D1 的 blobs 表里，不需要 R2 绑定。
+  // 想改用 R2：把 r2_buckets 加回来（binding 用 BUCKET），再把 src/index.js 里的 blobPut/blobGet/blobDelete 换回 env.BUCKET。
+  // 本地开发时管理接口不设防；线上部署前置 Cloudflare Access 后再改成 "1"
+  "vars": {
+    "REQUIRE_ACCESS": "0"
   }
 }
