@@ -144,33 +144,120 @@
     hint.textContent = `地图上 ${pinned.length} 个点，涉及 ${places.size || '若干'} 个地点。点开图标看照片。`;
   };
 
-  /* ---------------- 旅程 ---------------- */
-  const drawTrips = (trips, photos) => {
-    const host = $('trip-list');
-    if (!trips.length) {
-      host.innerHTML = '<p class="section__text">还没有旅程。到 <a href="/admin">管理页</a> 新建一次，再把照片归进去。</p>';
-      return;
-    }
+  /* ---------------- 旅程：最近一次跨页 + 其余索引 ---------------- */
+  const tripCounts = (photos) => {
     const counts = new Map();
     for (const p of photos) {
       if (p.trip_id) counts.set(p.trip_id, (counts.get(p.trip_id) || 0) + 1);
     }
-    host.innerHTML = trips.map((t) => {
-      const n = counts.get(t.id) || 0;
-      const cover = t.cover_id ? photos.find((p) => p.id === t.cover_id) : null;
-      const coverThumb = cover ? cover.key_thumb : (photos.find((p) => p.trip_id === t.id) || {}).key_thumb;
-      const meta = [fmtRange(t.start_date, t.end_date), n ? `${n} 张照片` : ''].filter(Boolean).join(' · ');
-      return `
-        <article class="trip-card">
-          ${coverThumb ? `<img class="trip-card__cover" src="${esc(imgSrc(coverThumb))}" alt="${esc(t.title)}" loading="lazy">` : ''}
-          <div class="trip-card__body">
-            <h3 class="trip-card__title">${esc(t.title)}</h3>
-            ${t.subtitle ? `<p class="trip-card__subtitle">${esc(t.subtitle)}</p>` : ''}
-            ${meta ? `<p class="trip-card__meta">${esc(meta)}</p>` : ''}
-            ${t.summary ? `<p class="trip-card__summary">${esc(t.summary)}</p>` : ''}
+    return counts;
+  };
+  const coverOf = (t, photos) => {
+    if (t.cover_id) {
+      const c = photos.find((p) => p.id === t.cover_id);
+      if (c) return c;
+    }
+    return photos.find((p) => p.trip_id === t.id) || null;
+  };
+  const sortTrips = (trips) => trips.slice().sort((a, b) =>
+    String(b.start_date || '').localeCompare(String(a.start_date || '')));
+
+  const renderFeature = (trips, photos) => {
+    const host = $('feature-trip');
+    if (!host) return;
+    const sorted = sortTrips(trips);
+    if (!sorted.length) {
+      host.innerHTML = '<p class="section__text">还没有旅程。到 <a href="/admin">管理页</a> 新建一次，再把照片归进去。</p>';
+      return;
+    }
+    const counts = tripCounts(photos);
+    const t = sorted[0];
+    const n = counts.get(t.id) || 0;
+    const cover = coverOf(t, photos);
+    const inside = photos.filter((p) => p.trip_id === t.id).slice(0, 3);
+    const meta = [fmtRange(t.start_date, t.end_date), n ? `${n} 张照片` : '', t.subtitle || '']
+      .filter(Boolean).join(' · ');
+    host.innerHTML = `
+      <article class="feature">
+        ${cover ? `<figure class="feature__cover"><img src="${esc(imgSrc(cover.key_thumb))}" alt="${esc(t.title)}"></figure>` : ''}
+        <div class="feature__body">
+          <p class="kicker">最近一次</p>
+          <h3 class="feature__title">${esc(t.title)}</h3>
+          ${meta ? `<p class="feature__meta">${esc(meta)}</p>` : ''}
+          ${t.summary ? `<p class="feature__summary">${esc(t.summary)}</p>` : ''}
+          <div class="feature__mini">
+            ${inside.map((p) => `<img src="${esc(imgSrc(p.key_thumb))}" alt="" loading="lazy">`).join('')}
           </div>
+        </div>
+      </article>`;
+  };
+
+  const renderTripIndex = (trips, photos) => {
+    const host = $('trip-index');
+    if (!host) return;
+    const sorted = sortTrips(trips).slice(1);
+    const counts = tripCounts(photos);
+    if (!sorted.length) { host.innerHTML = ''; return; }
+    host.innerHTML = sorted.map((t) => {
+      const n = counts.get(t.id) || 0;
+      const meta = [fmtRange(t.start_date, t.end_date), n ? `${n} 张照片` : '']
+        .filter(Boolean).join(' · ');
+      return `
+        <article class="card--flat">
+          <h3 class="card--flat__title">${esc(t.title)}</h3>
+          ${meta ? `<p class="card--flat__meta">${esc(meta)}</p>` : ''}
+          ${t.summary ? `<p class="card--flat__summary">${esc(t.summary)}</p>` : ''}
         </article>`;
     }).join('');
+  };
+
+  /* ---------------- 刊头：三张相纸 + 元信息条 ---------------- */
+  const renderMasthead = (photos, stats) => {
+    const plates = $('plates');
+    const mast = $('masthead');
+    const meta = $('masthead-meta');
+    const withKeys = photos.filter((p) => p.key_thumb);
+    const pick = withKeys.slice().reverse().slice(0, 3);
+
+    if (meta) {
+      const dates = withKeys.map((p) => p.shot_at).filter(Boolean).sort();
+      const first = dates.length ? fmtDate(dates[0]) : '';
+      const last = dates.length ? fmtDate(dates[dates.length - 1]) : '';
+      meta.textContent = [
+        first ? `第一张照片 ${first}` : '还没有照片',
+        last ? `最近更新 ${last}` : '',
+        `${stats.photos || 0} 张照片 · ${stats.trips || 0} 次旅程`,
+      ].filter(Boolean).join(' · ');
+    }
+
+    if (!pick.length || !plates) {
+      if (mast) mast.classList.add('masthead--bare');
+      if (plates) plates.innerHTML = '';
+      return;
+    }
+
+    const chip = (p) => (p.lat != null && p.lng != null)
+      ? `<span class="coord">${Math.abs(p.lat).toFixed(1)}°${p.lat >= 0 ? 'N' : 'S'} ${Math.abs(p.lng).toFixed(1)}°${p.lng >= 0 ? 'E' : 'W'}</span>`
+      : '';
+    const [a, b, c] = pick;
+    plates.innerHTML =
+      `<figure class="plate plate--main"><img src="${esc(imgSrc(a.key_thumb))}" alt="">${chip(a)}</figure>` +
+      (b ? `<figure class="plate plate--sub"><img src="${esc(imgSrc(b.key_thumb))}" alt="" loading="lazy"></figure>` : '') +
+      (c ? `<figure class="plate plate--stamp"><img src="${esc(imgSrc(c.key_thumb))}" alt="" loading="lazy"></figure>` : '');
+  };
+
+  /* ---------------- 胶片条 ---------------- */
+  const renderStrip = (photos) => {
+    const host = $('film-strip');
+    if (!host) return;
+    const pick = photos.slice().reverse().slice(0, 8);
+    host.innerHTML = pick.map((p) => {
+      const cap = p.caption || p.place || '';
+      return `<button class="strip__item" type="button" data-web="${esc(p.key_web)}" data-cap="${esc(cap)}" aria-label="查看大图：${esc(cap || '旅行照片')}">
+        <img src="${esc(imgSrc(p.key_thumb))}" alt="" loading="lazy">
+      </button>`;
+    }).join('');
+    host.hidden = !pick.length;
   };
 
   /* ---------------- 照片墙 ---------------- */
@@ -244,8 +331,20 @@
       `<b>${stats.trips || 0}</b> 次旅程`,
     ].join('<span class="stat-dot">·</span>');
 
+    const tripCountEl = $('trip-count');
+    if (tripCountEl) tripCountEl.textContent = stats.trips ? `共 ${stats.trips} 次` : '';
+    const wallCountEl = $('wall-count');
+    if (wallCountEl) wallCountEl.textContent = stats.photos
+      ? `共 ${stats.photos} 张 · 新的排前面` : '';
+    const coloStats = $('colophon-stats');
+    if (coloStats) coloStats.textContent =
+      `${stats.photos || 0} 张照片 · ${stats.pinned || 0} 张有坐标 · ${stats.trips || 0} 次旅程`;
+
+    renderMasthead(photos, stats);
+    renderFeature(trips, photos);
+    renderTripIndex(trips, photos);
+    renderStrip(photos);
     drawMap(photos);
-    drawTrips(trips, photos);
     drawWall(photos);
   })();
 })();

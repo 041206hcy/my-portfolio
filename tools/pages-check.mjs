@@ -4,6 +4,11 @@ const BASE = process.env.BASE || 'http://127.0.0.1:8787';
 
 const PAGES = [
   '/',
+  '/journeys.html',
+  '/journey.html',
+  '/photos.html',
+  '/map.html',
+  '/notes.html',
   '/about',
   '/admin',
   '/404.html',

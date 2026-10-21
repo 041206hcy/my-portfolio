@@ -1,0 +1,202 @@
+/* ==========================================================================
+   子页：刊头、年份分组、旅程行、单次旅程、双栏地图、空状态
+   依赖 styles.css 的 token 与 layout.css 的 .sheet / .band / .head / .colophon
+   ========================================================================== */
+
+/* 短页面时把版权页压到视口底部，避免下方留一大块空白
+   注意：只让 main 成为竖向 flex 容器；body 不能改成 flex，
+   否则 main 的 `margin: 0 auto` 会让它退化成 shrink-to-fit（内容被压窄）。 */
+body.page--wide > main {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100svh - var(--nav-h));
+}
+body.page--wide > main > .colophon { margin-top: auto; }
+
+/* ---------- 刊头 ---------- */
+.page-head {
+  padding: clamp(30px, 4.6vw, 62px) 0 clamp(22px, 3vw, 38px);
+  border-bottom: 1px solid var(--line);
+  margin-bottom: clamp(20px, 3.4vw, 40px);
+}
+.page-head__kicker {
+  font-family: var(--font-sans);
+  font-size: var(--fs-xs);
+  letter-spacing: .2em;
+  color: var(--muted);
+  margin: 0 0 var(--space-3);
+}
+.page-head__title {
+  font-family: var(--font-serif);
+  font-size: var(--fs-h1);
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -.01em;
+  margin: 0 0 var(--space-3);
+  color: var(--text);
+}
+.page-head__desc { max-width: 54ch; color: var(--ink-2); margin: 0; }
+.page-head__meta {
+  margin: var(--space-4) 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+.page-head__meta b {
+  font-family: var(--font-serif);
+  font-size: var(--fs-md);
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* ---------- 年份分组 ---------- */
+.year-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin: clamp(26px, 4vw, 44px) 0 var(--space-4);
+}
+.year-head:first-of-type { margin-top: 0; }
+.year-head__no {
+  font-family: var(--font-serif);
+  font-size: var(--fs-xl);
+  color: var(--accent);
+  line-height: 1;
+}
+.year-head__line { flex: 1; height: 1px; background: var(--line); }
+.year-head__count { font-size: var(--fs-xs); color: var(--muted); }
+
+/* ---------- 旅程行 ---------- */
+.rows { display: grid; }
+.row-trip {
+  display: grid;
+  grid-template-columns: 168px minmax(0, 1fr) auto;
+  gap: clamp(14px, 2.4vw, 30px);
+  align-items: center;
+  padding: var(--space-5) 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--text);
+}
+.rows .row-trip:first-child { border-top: 1px solid var(--line); }
+.row-trip:hover { background: rgba(255, 255, 255, .42); text-decoration: none; }
+.row-trip__thumb {
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--bg-soft);
+  border: 5px solid #fffefb;
+  border-radius: 2px;
+  box-shadow: 0 1px 0 rgba(43, 38, 32, .06), 0 10px 20px -16px rgba(43, 38, 32, .55);
+}
+.row-trip__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.row-trip__title {
+  font-family: var(--font-serif);
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  margin: 0 0 3px;
+}
+.row-trip__sub { color: var(--muted); font-size: var(--fs-xs); margin: 0 0 6px; letter-spacing: .04em; }
+.row-trip__desc { color: var(--ink-2); font-size: var(--fs-sm); margin: 0; max-width: 56ch; }
+.row-trip__side {
+  text-align: right;
+  font-size: var(--fs-xs);
+  color: var(--muted);
+  white-space: nowrap;
+  line-height: 1.7;
+}
+.row-trip__side b { font-family: var(--font-serif); font-size: var(--fs-md); color: var(--text); font-weight: 600; }
+.row-trip__arrow { display: block; color: var(--accent); font-size: var(--fs-base); margin-top: 2px; }
+
+/* ---------- 单次旅程 ---------- */
+.journey-hero { margin-bottom: clamp(22px, 3.6vw, 40px); }
+.journey-hero__img {
+  width: 100%;
+  aspect-ratio: 21 / 9;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+}
+.journey-hero__img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.journey-hero__cap {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  padding-top: var(--space-3);
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+
+/* ---------- 上下篇 ---------- */
+.pager {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin: clamp(30px, 5vw, 54px) 0 0;
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--line);
+}
+.pager a { color: var(--text); }
+.pager a span { display: block; font-size: var(--fs-xs); color: var(--muted); letter-spacing: .1em; margin-bottom: 3px; }
+.pager__next { text-align: right; }
+
+/* ---------- 双栏（地图页） ---------- */
+.twocol {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  margin-bottom: clamp(28px, 4vw, 56px);
+  gap: clamp(18px, 3vw, 36px);
+  align-items: start;
+}
+.twocol__side { position: sticky; top: calc(var(--nav-h) + var(--space-4)); }
+.place-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+.place-list li { border-bottom: 1px solid var(--line); }
+.place-list button {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: 10px 4px;
+  background: none;
+  border: 0;
+  font: inherit;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+.place-list button:hover { color: var(--accent); }
+.place-list b { font-family: var(--font-serif); font-weight: 600; }
+.place-list em { font-style: normal; color: var(--muted); font-size: var(--fs-xs); }
+.map--stage { min-height: clamp(420px, 62svh, 680px); }
+
+/* ---------- 空状态 ---------- */
+.empty {
+  padding: clamp(28px, 5vw, 64px) 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+.empty b { display: block; font-family: var(--font-serif); font-size: var(--fs-lg); color: var(--text); font-weight: 600; margin-bottom: 6px; }
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 1023px) {
+  .twocol { grid-template-columns: 1fr; }
+  .twocol__side { position: static; }
+  .place-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .place-list li { border-bottom: 1px solid var(--line); }
+  .place-list li:nth-child(odd) { border-right: 1px solid var(--line); padding-right: var(--space-3); }
+}
+
+@media (max-width: 767px) {
+  .row-trip { grid-template-columns: 108px minmax(0, 1fr); gap: var(--space-4); }
+  .row-trip__side { grid-column: 2; text-align: left; margin-top: 4px; }
+  .row-trip__arrow { display: none; }
+  .journey-hero__img { aspect-ratio: 16 / 10; }
+  .place-list { grid-template-columns: 1fr; }
+  .place-list li:nth-child(odd) { border-right: 0; padding-right: 0; }
+  .pager { flex-direction: column; gap: var(--space-4); }
+  .pager__next { text-align: left; }
+}

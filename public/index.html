@@ -16,60 +16,172 @@
 <meta property="og:image" content="https://shackle0412.vip/assets/og-cover.jpg">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="layout.css">
 <link rel="stylesheet" href="vendor/leaflet.css">
 <link rel="stylesheet" href="vendor/MarkerCluster.css">
 <link rel="stylesheet" href="vendor/MarkerCluster.Default.css">
 </head>
 <body class="page--wide">
 
+<a class="skip" href="#main">跳到主内容</a>
+
 <header class="nav" id="top">
   <a class="nav__brand" href="/">黄翀与的旅程</a>
   <nav class="nav__links" aria-label="主导航">
-    <a href="#map">地图</a>
-    <a href="#trips">旅程</a>
-    <a href="#wall">照片墙</a>
-    <a href="/about">关于我</a>
+    <a href="/journeys.html">旅程</a>
+    <a href="/map.html">地图</a>
+    <a href="/photos.html">照片</a>
+    <a href="/notes.html">笔记</a>
+    <a href="/about">关于</a>
   </nav>
 </header>
 
-<main>
+<main id="main">
 
-  <section class="hero">
-    <h1 class="hero__name">黄翀与的旅程</h1>
-    <p class="hero__tagline">走到哪儿，拍到哪儿</p>
-    <p class="hero__desc">
-      去过的地方在这张图上连成片。照片从相册传上来，标好位置，就在地图上亮起来；
-      攒够一趟，就归成一次旅程。
-    </p>
-    <p class="hero__stats" id="stats" role="status">正在读取…</p>
-    <div class="hero__actions">
-      <a class="btn btn--primary" href="#map">看地图</a>
-      <a class="btn" href="#wall">翻照片墙</a>
-      <a class="btn" href="/about">关于我</a>
+  <!-- ================= 刊头：文字 1–6 列 / 相纸 8–12 列 ================= -->
+  <section class="masthead" id="masthead">
+    <div class="masthead__lede">
+      <p class="kicker">旅行手记 · 2019 — 2026</p>
+      <h1 class="masthead__name">黄翀与的旅程</h1>
+      <div class="masthead__rule"></div>
+      <p class="masthead__tag">走到哪儿，拍到哪儿</p>
+      <p class="masthead__desc">
+        去过的地方在这张图上连成片。照片从相册传上来，标好位置，
+        就在地图上亮起来；攒够一趟，就归成一次旅程。
+      </p>
+      <p class="masthead__stats" id="stats" role="status">正在读取…</p>
+      <div class="masthead__actions">
+        <a class="btn btn--primary" href="/map.html">看地图</a>
+        <a class="btn" href="/photos.html">翻照片</a>
+      </div>
+    </div>
+    <div class="masthead__plates" id="plates" aria-hidden="true"></div>
+    <p class="masthead__meta" id="masthead-meta"></p>
+  </section>
+
+  <!-- ================= 目录条：本期的页目 ================= -->
+  <nav class="toc" aria-label="本期目录">
+    <a class="toc__cell" href="/journeys.html">
+      <span class="toc__no">01</span>
+      <span class="toc__name">旅程</span>
+      <span class="toc__desc">按时间排的每一趟</span>
+      <span class="toc__arrow" aria-hidden="true">→</span>
+    </a>
+    <a class="toc__cell" href="/map.html">
+      <span class="toc__no">02</span>
+      <span class="toc__name">地图</span>
+      <span class="toc__desc">都在哪些地方</span>
+      <span class="toc__arrow" aria-hidden="true">→</span>
+    </a>
+    <a class="toc__cell" href="/photos.html">
+      <span class="toc__no">03</span>
+      <span class="toc__name">照片</span>
+      <span class="toc__desc">整本相册</span>
+      <span class="toc__arrow" aria-hidden="true">→</span>
+    </a>
+    <a class="toc__cell" href="/notes.html">
+      <span class="toc__no">04</span>
+      <span class="toc__name">笔记</span>
+      <span class="toc__desc">路上写下的</span>
+      <span class="toc__arrow" aria-hidden="true">→</span>
+    </a>
+  </nav>
+
+  <!-- ================= 01 旅程：最近一次跨页 + 其余索引 ================= -->
+  <section class="band" id="trips">
+    <header class="head">
+      <p class="head__no">01</p>
+      <h2 class="head__title">旅程</h2>
+      <p class="head__sub">最近一次在最上面</p>
+      <span class="head__more" id="trip-count"></span>
+    </header>
+    <div id="feature-trip"></div>
+    <div class="trip-index" id="trip-index"></div>
+  </section>
+
+  <!-- ================= 02 地图：满版色块 ================= -->
+  <section class="band band--soft band--bleed" id="map">
+    <div class="band__inner">
+      <header class="head">
+        <p class="head__no">02</p>
+        <h2 class="head__title">地图</h2>
+        <p class="head__sub">点开图标看照片</p>
+        <span class="head__more" id="map-hint" role="status">正在加载地图…</span>
+      </header>
+      <div class="map" id="map-canvas"></div>
     </div>
   </section>
 
-  <section class="section" id="map">
-    <h2 class="section__title">地图</h2>
-    <p class="section__text" id="map-hint" role="status">正在加载地图…</p>
-    <div class="map" id="map-canvas"></div>
+  <!-- ================= 03 照片：胶片条 + 错版墙 ================= -->
+  <section class="band" id="wall">
+    <header class="head">
+      <p class="head__no">03</p>
+      <h2 class="head__title">照片</h2>
+      <p class="head__sub">新的排前面</p>
+      <span class="head__more" id="wall-count"></span>
+    </header>
+    <div class="strip" id="film-strip" aria-label="最近的照片"></div>
+    <div class="wall wall--mosaic" id="photo-wall"></div>
   </section>
 
-  <section class="section" id="trips">
-    <h2 class="section__title">旅程</h2>
-    <div class="trips" id="trip-list"></div>
+  <!-- ================= 04 笔记 ================= -->
+  <section class="band band--soft band--bleed" id="notes">
+    <div class="band__inner">
+      <header class="head">
+        <p class="head__no">04</p>
+        <h2 class="head__title">笔记</h2>
+        <p class="head__sub">路上写下的</p>
+        <span class="head__more">共 2 篇</span>
+      </header>
+      <ul class="note-list">
+        <li class="note-row">
+          <span class="note-row__date">2026-10-21</span>
+          <a class="note-row__link" href="notes/cloudflare-deploy.html">
+            <span class="note-row__title">把静态站搬到 Cloudflare，我踩了五个坑</span>
+            <span class="note-row__desc">Workers 与 Pages 的差别、构建目录、域名接入的完整过程。</span>
+          </a>
+        </li>
+        <li class="note-row">
+          <span class="note-row__date">2026-10-18</span>
+          <a class="note-row__link" href="notes/lidar-to-feature-matrix.html">
+            <span class="note-row__title">从点云到特征矩阵：一次外业的七个阶段</span>
+            <span class="note-row__desc">规划、控制、飞行、空三、匹配、点云、检核的判据。</span>
+          </a>
+        </li>
+      </ul>
+    </div>
   </section>
 
-  <section class="section" id="wall">
-    <h2 class="section__title">照片墙</h2>
-    <div class="wall" id="photo-wall"></div>
-  </section>
+  <!-- ================= 版权页：深色收束 ================= -->
+  <footer class="colophon band--bleed">
+    <div class="band__inner colophon__grid">
+      <div>
+        <p class="colophon__brand">黄翀与的旅程</p>
+        <p class="colophon__line">走到哪儿，拍到哪儿。照片与文字均为本人拍摄整理。</p>
+      </div>
+      <div>
+        <p class="colophon__head">本期</p>
+        <p class="colophon__line" id="colophon-stats">—</p>
+      </div>
+      <div>
+        <p class="colophon__head">栏目</p>
+        <p class="colophon__line">
+          <a href="/journeys.html">旅程</a> · <a href="/map.html">地图</a> ·
+          <a href="/photos.html">照片</a> · <a href="/about">关于</a>
+        </p>
+      </div>
+      <div>
+        <p class="colophon__head">站点</p>
+        <p class="colophon__line">
+          <a href="https://shackle0412.vip/">shackle0412.vip</a><br>
+          © <span id="year">2026</span> 黄翀与<br>
+          <a href="#top">回到顶部 ↑</a>
+        </p>
+      </div>
+    </div>
+  </footer>
 
 </main>
-
-<footer class="footer">
-  <p>© <span id="year">2026</span> 黄翀与 · 照片与文字均为本人拍摄整理</p>
-</footer>
 
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="照片大图" hidden>
   <button class="lightbox__close" type="button" id="lightbox-close" aria-label="关闭">×</button>

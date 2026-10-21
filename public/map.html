@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>地图 · 黄翀与的旅程</title>
+<meta name="description" content="地图上的足迹：按地点聚合的旅行照片，点聚合看数量，点标记看照片。">
+<link rel="canonical" href="https://shackle0412.vip/map.html">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/styles.css">
+<link rel="stylesheet" href="/layout.css">
+<link rel="stylesheet" href="/page.css">
+<link rel="stylesheet" href="/vendor/leaflet.css">
+<link rel="stylesheet" href="/vendor/MarkerCluster.css">
+<link rel="stylesheet" href="/vendor/MarkerCluster.Default.css">
+</head>
+<body class="page--wide" data-page="map">
+
+<a class="skip" href="#main">跳到主内容</a>
+
+<header class="nav" id="top">
+  <a class="nav__brand" href="/">黄翀与的旅程</a>
+  <nav class="nav__links" aria-label="主导航">
+    <a href="/journeys.html">旅程</a>
+    <a href="/map.html" aria-current="page">地图</a>
+    <a href="/photos.html">照片</a>
+    <a href="/notes.html">笔记</a>
+    <a href="/about">关于</a>
+  </nav>
+</header>
+
+<main id="main">
+  <div class="sheet c-full">
+    <div class="c-12">
+
+      <div class="page-head">
+        <p class="page-head__kicker">02 · 地图</p>
+        <h1 class="page-head__title">地图上的足迹</h1>
+        <p class="page-head__desc">每个点是一张照片，聚在一起会收成数字。左边按地点点名，点一下地图就飞过去。</p>
+        <p class="page-head__meta" id="page-stats"></p>
+      </div>
+
+      <div class="twocol">
+        <aside class="twocol__side">
+          <div class="head">
+            <div>
+              <p class="head__no">地点</p>
+              <h2 class="head__title">去过的地方</h2>
+            </div>
+          </div>
+          <ul class="place-list" id="place-list">
+            <li><button type="button" disabled>正在载入…</button></li>
+          </ul>
+        </aside>
+        <div class="map map--stage" id="map-canvas"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer class="colophon band--bleed">
+    <div class="band__inner colophon__grid">
+      <div>
+        <p class="colophon__brand">黄翀与的旅程</p>
+        <p class="colophon__line">走到哪儿，拍到哪儿。照片与文字均为本人拍摄整理。</p>
+      </div>
+      <div>
+        <p class="colophon__head">本期</p>
+        <p class="colophon__line" id="colophon-stats">—</p>
+      </div>
+      <div>
+        <p class="colophon__head">栏目</p>
+        <p class="colophon__line">
+          <a href="/journeys.html">旅程</a> · <a href="/map.html">地图</a> ·
+          <a href="/photos.html">照片</a> · <a href="/notes.html">笔记</a> ·
+          <a href="/about">关于</a>
+        </p>
+      </div>
+      <div>
+        <p class="colophon__head">站点</p>
+        <p class="colophon__line">
+          <a href="https://shackle0412.vip/">shackle0412.vip</a><br>
+          © <span id="year">2026</span> 黄翀与<br>
+          <a href="#top">回到顶部 ↑</a>
+        </p>
+      </div>
+    </div>
+  </footer>
+</main>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="照片大图" hidden>
+  <button class="lightbox__close" type="button" id="lightbox-close" aria-label="关闭">×</button>
+  <img id="lightbox-img" alt="">
+  <p class="lightbox__cap" id="lightbox-cap"></p>
+</div>
+
+<script src="/vendor/leaflet.js"></script>
+<script src="/vendor/leaflet.markercluster.js"></script>
+<script src="/pages.js"></script>
+</body>
+</html>

@@ -5,7 +5,7 @@
   --card: #fffdf8;        /* 卡片比纸更亮，像贴上去的纸片 */
   --line: #d8cdb8;        /* 细线 */
   --text: #2b2620;        /* 主墨色 */
-  --muted: #7a6f61;       /* 弱化：图注、元信息、空状态 */
+  --muted: #6f6355;       /* 弱化：图注、元信息、空状态（纸底对比 5.28:1，过 AA） */
   --accent: #b4543a;      /* 砖红点缀 */
   --accent-soft: rgba(180, 84, 58, .10);
 
@@ -84,7 +84,7 @@ body {
    但因为是半透明噪点，视觉上只是给整页加了一层胶片颗粒。 */
 body::after {
   content: "";
-  position: fixed; inset: 0; z-index: 9999;
+  position: fixed; inset: 0; z-index: 1;
   pointer-events: none;
   opacity: .035;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");

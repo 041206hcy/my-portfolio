@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>照片 · 黄翀与的旅程</title>
+<meta name="description" content="整本相册：按月份倒序铺开的旅行照片，点开看大图。">
+<link rel="canonical" href="https://shackle0412.vip/photos.html">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/styles.css">
+<link rel="stylesheet" href="/layout.css">
+<link rel="stylesheet" href="/page.css">
+</head>
+<body class="page--wide" data-page="photos">
+
+<a class="skip" href="#main">跳到主内容</a>
+
+<header class="nav" id="top">
+  <a class="nav__brand" href="/">黄翀与的旅程</a>
+  <nav class="nav__links" aria-label="主导航">
+    <a href="/journeys.html">旅程</a>
+    <a href="/map.html">地图</a>
+    <a href="/photos.html" aria-current="page">照片</a>
+    <a href="/notes.html">笔记</a>
+    <a href="/about">关于</a>
+  </nav>
+</header>
+
+<main id="main">
+  <div class="sheet c-full">
+    <div class="c-12">
+
+      <div class="page-head">
+        <p class="page-head__kicker">03 · 照片</p>
+        <h1 class="page-head__title">整本相册</h1>
+        <p class="page-head__desc">按月份倒序，同一个月的排在一起。点开任意一张看网页尺寸的大图——原图留在硬盘里，没有上传。</p>
+        <p class="page-head__meta" id="page-stats"></p>
+      </div>
+
+      <div id="album">
+        <div class="empty"><b>正在铺照片</b>马上就好。</div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer class="colophon band--bleed">
+    <div class="band__inner colophon__grid">
+      <div>
+        <p class="colophon__brand">黄翀与的旅程</p>
+        <p class="colophon__line">走到哪儿，拍到哪儿。照片与文字均为本人拍摄整理。</p>
+      </div>
+      <div>
+        <p class="colophon__head">本期</p>
+        <p class="colophon__line" id="colophon-stats">—</p>
+      </div>
+      <div>
+        <p class="colophon__head">栏目</p>
+        <p class="colophon__line">
+          <a href="/journeys.html">旅程</a> · <a href="/map.html">地图</a> ·
+          <a href="/photos.html">照片</a> · <a href="/notes.html">笔记</a> ·
+          <a href="/about">关于</a>
+        </p>
+      </div>
+      <div>
+        <p class="colophon__head">站点</p>
+        <p class="colophon__line">
+          <a href="https://shackle0412.vip/">shackle0412.vip</a><br>
+          © <span id="year">2026</span> 黄翀与<br>
+          <a href="#top">回到顶部 ↑</a>
+        </p>
+      </div>
+    </div>
+  </footer>
+</main>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="照片大图" hidden>
+  <button class="lightbox__close" type="button" id="lightbox-close" aria-label="关闭">×</button>
+  <img id="lightbox-img" alt="">
+  <p class="lightbox__cap" id="lightbox-cap"></p>
+</div>
+
+<script src="/pages.js"></script>
+</body>
+</html>

@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>构图稿 · 首页复合版式 v1</title>
+<style>
+  :root {
+    --paper: #f7f3ea;
+    --paper-soft: #f1ebdd;
+    --card: #fffdf8;
+    --line: #d8cdb8;
+    --ink: #2b2620;
+    --ink-2: #4a4238;
+    --muted: #6f6455;
+    --accent: #b4543a;
+    --accent-soft: rgba(180, 84, 58, .10);
+    --mono: ui-monospace, SFMono-Regular, Consolas, "Courier New", monospace;
+    --serif: "Songti SC", "Noto Serif SC", "SimSun", Georgia, serif;
+    --sans: -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 48px 28px 96px;
+    background: #ece5d6; color: var(--ink);
+    font-family: var(--sans); line-height: 1.8;
+  }
+  .sheet-head { max-width: 1244px; margin: 0 auto 40px; }
+  .sheet-head h1 { font-family: var(--serif); font-size: 32px; margin: 0 0 6px; letter-spacing: .02em; }
+  .sheet-head p { margin: 0; color: var(--muted); font-size: 14px; }
+  .sheet-head .tag {
+    display: inline-block; margin-bottom: 10px; padding: 1px 8px;
+    font-family: var(--mono); font-size: 11px; letter-spacing: .08em;
+    color: var(--accent); border: 1px solid rgba(180, 84, 58, .35);
+    background: var(--accent-soft); border-radius: 2px;
+  }
+  section.sheet { max-width: 1244px; margin: 0 auto 56px; }
+  section.sheet > h2 {
+    font-size: 13px; font-family: var(--mono); font-weight: 600;
+    letter-spacing: .12em; color: var(--muted);
+    margin: 0 0 14px; padding-bottom: 8px; border-bottom: 1px solid #d7cdb9;
+  }
+  section.sheet > h2 b { color: var(--ink); margin-right: 10px; font-weight: 700; }
+  .board-wrap { overflow-x: auto; padding: 4px 0 10px; }
+  .board {
+    width: 1180px; background: var(--paper);
+    border: 1px solid var(--line); border-radius: 2px;
+    box-shadow: 0 12px 32px -24px rgba(43, 38, 32, .45);
+    position: relative;
+  }
+
+  /* ---------- 01 封面 ---------- */
+  .cover-board { padding: 48px 32px 40px; min-height: 680px; }
+  .cover-board::before {
+    content: "12 COL · 1180";
+    position: absolute; top: 12px; right: 16px;
+    font-family: var(--mono); font-size: 10px; letter-spacing: .1em; color: #a99b83;
+  }
+  /* 纸底上的等高线暗示：不抢戏，只给一点"地图感" */
+  .cover-board .contour {
+    position: absolute; inset: 0; pointer-events: none; opacity: .5;
+    background-image:
+      radial-gradient(120% 80% at 78% 42%, rgba(180, 84, 58, .045), transparent 62%),
+      repeating-radial-gradient(circle at 76% 46%, transparent 0 26px, rgba(43, 38, 32, .035) 26px 27px);
+  }
+  .cover-grid {
+    position: relative;
+    display: grid; grid-template-columns: repeat(12, 1fr); gap: 24px;
+    align-items: center; min-height: 560px;
+  }
+  .guides {
+    position: absolute; inset: 0; display: grid;
+    grid-template-columns: repeat(12, 1fr); gap: 24px;
+    pointer-events: none;
+  }
+  .guides i { border-left: 1px dashed rgba(180, 84, 58, .22); }
+  .guides i:last-child { border-right: 1px dashed rgba(180, 84, 58, .22); }
+
+  .cover-text { grid-column: 1 / 8; position: relative; z-index: 1; }
+  .eyebrow {
+    font-size: 12px; letter-spacing: .24em; color: var(--accent);
+    margin: 0 0 18px;
+  }
+  .cover-text h3 {
+    font-family: var(--serif); font-weight: 600;
+    font-size: 58px; line-height: 1.16; letter-spacing: .02em;
+    margin: 0 0 14px;
+  }
+  .rule { width: 44px; height: 2px; background: var(--accent); margin: 0 0 14px; }
+  .tagline { font-size: 17px; color: var(--accent); letter-spacing: .06em; margin: 0 0 16px; }
+  .cover-text p.desc {
+    font-size: 15px; color: var(--muted); max-width: 34em; margin: 0 0 22px;
+  }
+  .stats { font-size: 14px; color: var(--muted); margin: 0 0 24px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .stats b { font-family: var(--serif); font-size: 24px; font-weight: 600; color: var(--ink); margin-right: 3px; }
+  .stats .dot { color: #c3b69c; }
+  .cta { display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn {
+    display: inline-block; padding: 8px 18px; border-radius: 3px;
+    border: 1px solid #c3b69c; font-size: 14px; color: var(--ink); background: transparent;
+  }
+  .btn--primary { background: var(--accent); border-color: var(--accent); color: #fffdf8; font-weight: 600; }
+
+  .cover-photo { grid-column: 8 / 13; margin: 0; position: relative; z-index: 1; }
+  .photo-frame {
+    background: #fffdf8; padding: 8px 8px 34px;
+    border: 1px solid #e4dcc9; border-radius: 2px;
+    box-shadow: 0 24px 48px -28px rgba(43, 38, 32, .40);
+    transform: rotate(-1.5deg) translateY(-24px);
+  }
+  .photo-hatch {
+    aspect-ratio: 4 / 5; border-radius: 1px;
+    background:
+      repeating-linear-gradient(45deg, #ebe4d3 0 7px, #f4efe3 7px 14px);
+    position: relative; display: grid; place-items: center;
+  }
+  .photo-hatch span {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .06em;
+    color: #9b8e76; background: rgba(255, 253, 248, .82);
+    padding: 3px 8px; border: 1px dashed #cfc3ab; border-radius: 2px;
+  }
+  .cover-photo figcaption {
+    margin-top: 10px; text-align: right;
+    font-size: 12px; color: var(--muted); letter-spacing: .02em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .notes { margin: 14px 0 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+  .notes li {
+    font-size: 12px; color: var(--muted); font-family: var(--mono);
+    display: flex; gap: 10px; align-items: baseline;
+  }
+  .notes li::before { content: "—"; color: #b9ac94; }
+
+  /* ---------- 02 节奏 ---------- */
+  .rhythm-grid { display: grid; grid-template-columns: 132px 1fr; gap: 0 20px; }
+  .rhythm-gap {
+    display: flex; align-items: center; justify-content: flex-end;
+    font-family: var(--mono); font-size: 11px; color: var(--accent);
+    padding-right: 10px;
+  }
+  .rhythm-gap::after { content: ""; width: 1px; height: 100%; background: rgba(180, 84, 58, .2); margin-left: 10px; }
+  .band {
+    border: 1px solid var(--line); border-radius: 2px; position: relative;
+    display: flex; align-items: center; padding: 0 18px; gap: 14px;
+    background: var(--paper); overflow: hidden;
+  }
+  .band--soft { background: var(--paper-soft); }
+  .band .num {
+    font-family: var(--mono); font-size: 11px; color: var(--accent);
+    border: 1px solid rgba(180, 84, 58, .3); padding: 0 6px; border-radius: 2px;
+  }
+  .band .name { font-family: var(--serif); font-size: 15px; }
+  .band .spec { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .band .inner {
+    position: absolute; top: 8px; bottom: 8px; left: 40px; right: 40px;
+    border: 1px dashed rgba(43, 38, 32, .18); border-radius: 2px; pointer-events: none;
+  }
+  .band .bleed {
+    position: absolute; inset: 0; border: 0;
+    background: linear-gradient(180deg, rgba(180, 84, 58, .05), transparent);
+    pointer-events: none;
+  }
+  .band .bleed::before, .band .bleed::after {
+    content: "‹ 出血"; position: absolute; top: 6px; left: 8px;
+    font-family: var(--mono); font-size: 9px; color: #b3a68d; letter-spacing: .06em;
+  }
+  .band .bleed::after { content: "出血 ›"; left: auto; right: 8px; }
+  .spacer { height: 0; }
+  .gap-row { display: grid; grid-template-columns: 132px 1fr; align-items: center; height: 34px; }
+  .gap-row span {
+    font-family: var(--mono); font-size: 10px; color: #b3a68d;
+    text-align: right; padding-right: 10px;
+  }
+  .gap-row .bar { border-top: 1px solid rgba(180, 84, 58, .18); }
+
+  /* ---------- 03 移动端 ---------- */
+  .mobile-row { display: flex; gap: 32px; align-items: flex-start; flex-wrap: wrap; }
+  .phone {
+    width: 390px; background: var(--paper); border: 1px solid var(--line);
+    border-radius: 2px; padding: 0; position: relative;
+    box-shadow: 0 12px 32px -24px rgba(43, 38, 32, .45);
+  }
+  .phone .navbar {
+    height: 57px; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 16px; border-bottom: 1px solid var(--line); font-size: 13px;
+  }
+  .phone .navbar b { font-family: var(--serif); font-size: 15px; font-weight: 600; letter-spacing: .04em; }
+  .phone .navbar span { color: var(--muted); font-size: 12px; }
+  .phone .body { padding: 28px 20px 36px; }
+  .phone .eyebrow { margin-bottom: 12px; }
+  .phone h3 { font-family: var(--serif); font-size: 34px; line-height: 1.2; margin: 0 0 10px; font-weight: 600; }
+  .phone .tagline { font-size: 15px; margin-bottom: 18px; }
+  .phone .photo-hatch { aspect-ratio: 4 / 3; }
+  .phone .photo-frame { transform: none; padding: 5px 5px 24px; }
+  .phone p.desc { font-size: 14px; color: var(--muted); margin: 18px 0 14px; }
+  .phone .stats { display: block; font-size: 13px; margin-bottom: 20px; }
+  .phone .stats b { font-size: 20px; }
+  .phone .cta { flex-direction: column; gap: 10px; }
+  .phone .btn { text-align: center; height: 48px; display: flex; align-items: center; justify-content: center; }
+  .cutline {
+    position: absolute; left: 0; right: 0; border-top: 1px dashed var(--accent);
+    font-family: var(--mono); font-size: 9px; color: var(--accent);
+    text-align: right; padding: 3px 8px 0;
+  }
+  .phone-note { max-width: 320px; }
+  .phone-note h3 { font-family: var(--serif); font-size: 17px; margin: 0 0 8px; }
+  .phone-note ol { margin: 0; padding-left: 18px; font-size: 13px; color: var(--muted); }
+  .phone-note li { margin: 4px 0; }
+
+  /* ---------- 04 页面地图 ---------- */
+  .pagemap { display: grid; gap: 14px; grid-template-columns: repeat(5, 1fr); }
+  .page {
+    background: var(--card); border: 1px solid var(--line); border-radius: 2px;
+    padding: 14px 14px 16px; position: relative;
+  }
+  .page b { display: block; font-family: var(--serif); font-size: 16px; margin-bottom: 2px; }
+  .page code { font-family: var(--mono); font-size: 10px; color: var(--accent); }
+  .page p { margin: 6px 0 0; font-size: 12px; color: var(--muted); line-height: 1.7; }
+  .page--home { background: var(--accent-soft); border-color: rgba(180, 84, 58, .35); }
+
+  .swatches { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+  .sw { display: flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 10px; color: var(--muted); }
+  .sw i { width: 22px; height: 22px; border: 1px solid rgba(43, 38, 32, .12); border-radius: 2px; display: inline-block; }
+
+  @media (max-width: 900px) {
+    .pagemap { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<header class="sheet-head">
+  <span class="tag">DESIGN SHEET · v1 · 2026-10-21</span>
+  <h1>首页复合版式 · 构图稿</h1>
+  <p>基准：1180px 容器 · 12 列 · 列距 24 · 单列 71px。配合 proposal：<code>design/home-composite-v1.md</code>。灰斜线区域为照片占位，虚线为栅格与宽度参考。</p>
+</header>
+
+<!-- ============ 01 首屏 ============ -->
+<section class="sheet">
+  <h2><b>01</b>桌面首屏 · 7:5 非对称双栏</h2>
+  <div class="board-wrap">
+    <div class="board cover-board">
+      <div class="contour" aria-hidden="true"></div>
+      <div class="cover-grid">
+        <div class="guides" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+
+        <div class="cover-text">
+          <p class="eyebrow">照片 · 旅程 · 坐标</p>
+          <h3>黄翀与的旅程</h3>
+          <div class="rule"></div>
+          <p class="tagline">走到哪儿，拍到哪儿</p>
+          <p class="desc">去过的地方在这张图上连成片。照片标好位置就在地图上亮起来；攒够一趟，就归成一次旅程。这里放两行导语，长度不超过 34em。</p>
+          <p class="stats">
+            <span><b>128</b>张照片</span><span class="dot">·</span>
+            <span><b>3</b>次旅程</span><span class="dot">·</span>
+            <span><b>37</b>个地点</span>
+          </p>
+          <p class="cta"><a class="btn btn--primary">从最近的旅程开始</a><a class="btn">翻照片</a></p>
+        </div>
+
+        <figure class="cover-photo">
+          <div class="photo-frame">
+            <div class="photo-hatch"><span>主照片 451 × 564 · 4:5</span></div>
+          </div>
+          <figcaption>大理 · 2026-08 · 30.2°N 100.1°E</figcaption>
+        </figure>
+      </div>
+    </div>
+  </div>
+  <ul class="notes">
+    <li>文字列 1–7（641px），照片 8–12（451px），gap 24；首屏高 clamp(560px, 82vh, 780px)</li>
+    <li>照片白边 8px、旋转 −1.5°、上移 24px、阴影 0 24px 48px −28px rgba(43,38,32,.40)</li>
+    <li>砖红只用于 eyebrow / 短线 / 主按钮；正文与图注走墨色与深 muted</li>
+    <li>等高线背景为可选层（当前用 CSS 渐变模拟），实际用 4% SVG pattern，不额外请求图片</li>
+  </ul>
+</section>
+
+<!-- ============ 02 节奏 ============ -->
+<section class="sheet">
+  <h2><b>02</b>首页六段节奏 · 宽窄与明暗交替</h2>
+  <div class="rhythm-grid">
+    <div></div>
+    <div class="band" style="height:252px">
+      <span class="num">01</span><span class="name">封面</span>
+      <span class="spec">clamp(560–780) · 1180 容器</span>
+      <span class="inner"></span>
+    </div>
+  </div>
+  <div class="rhythm-grid">
+    <div class="rhythm-gap">0</div>
+    <div class="band band--soft" style="height:34px">
+      <span class="num">02</span><span class="name">引文带 Ledger</span>
+      <span class="spec">88px · 出血 · 最近一次旅程</span>
+      <span class="bleed"></span>
+    </div>
+  </div>
+  <div class="gap-row"><span>96</span><div class="bar"></div></div>
+  <div class="rhythm-grid">
+    <div></div>
+    <div class="band" style="height:231px">
+      <span class="num">03</span><span class="name">精选旅程 Bento</span>
+      <span class="spec">1 大（图 4:3）+ 2 小（图 2:1）· 1180 容器</span>
+      <span class="inner"></span>
+    </div>
+  </div>
+  <div class="gap-row"><span>96</span><div class="bar"></div></div>
+  <div class="rhythm-grid">
+    <div></div>
+    <div class="band band--soft" style="height:151px">
+      <span class="num">04</span><span class="name">地图带 Map band</span>
+      <span class="spec">420px · 出血 · 进视口才初始化 Leaflet</span>
+      <span class="bleed"></span>
+    </div>
+  </div>
+  <div class="gap-row"><span>96</span><div class="bar"></div></div>
+  <div class="rhythm-grid">
+    <div></div>
+    <div class="band" style="height:115px">
+      <span class="num">05</span><span class="name">胶片条 Filmstrip</span>
+      <span class="spec">320px · 横向 snap · 280px/张 · 末尾"看全部"</span>
+      <span class="inner"></span>
+    </div>
+  </div>
+  <div class="gap-row"><span>96</span><div class="bar"></div></div>
+  <div class="rhythm-grid">
+    <div></div>
+    <div class="band" style="height:86px">
+      <span class="num">06</span><span class="name">收束 + 页脚</span>
+      <span class="spec">≈240px · 1180 容器 · 三个出口</span>
+      <span class="inner"></span>
+    </div>
+  </div>
+  <ul class="notes">
+    <li>明暗：纸 → 深一档 → 纸 → 深一档 → 纸，每两段换一次，不逐段换</li>
+    <li>宽窄：容器 → 出血 → 容器 → 出血 → 容器；出血带负责打破 1180 矩形</li>
+    <li>间距：桌面 96 / 平板 64 / 手机 48；块内 24 / 16 / 8</li>
+  </ul>
+</section>
+
+<!-- ============ 03 移动端 ============ -->
+<section class="sheet">
+  <h2><b>03</b>移动端首屏 · 390 × 667 预算</h2>
+  <div class="mobile-row">
+    <div class="phone">
+      <div class="navbar"><b>黄翀与的旅程</b><span>菜单</span></div>
+      <div class="body">
+        <p class="eyebrow">照片 · 旅程 · 坐标</p>
+        <h3>黄翀与的旅程</h3>
+        <p class="tagline">走到哪儿，拍到哪儿</p>
+        <figure class="cover-photo">
+          <div class="photo-frame">
+            <div class="photo-hatch"><span>主照片 4:3 · 350 × 262</span></div>
+          </div>
+        </figure>
+        <p class="desc">去过的地方在这张图上连成片。照片标好位置就在地图上亮起来。</p>
+        <p class="stats"><b>128</b> 张照片 · <b>3</b> 次旅程 · <b>37</b> 个地点</p>
+        <p class="cta"><a class="btn btn--primary">从最近的旅程开始</a><a class="btn">翻照片</a></p>
+      </div>
+      <div class="cutline" style="top:667px">首屏线 667px</div>
+    </div>
+    <div class="phone-note">
+      <h3>顺序与约束</h3>
+      <ol>
+        <li>h1 → 副题 → <b>照片</b> → 导语 → 统计 → 按钮。照片必须在导语之前，照片站要先"看见照片"。</li>
+        <li>照片取消旋转，白边收到 5px，4:3 满宽。</li>
+        <li>按钮竖排、48px 高、间距 10px；点击区不小于 44×44。</li>
+        <li>667px 内必须出现「站名 + 照片 + 主 CTA」，否则首屏失败。</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 04 页面地图 ============ -->
+<section class="sheet">
+  <h2><b>04</b>页面地图 · 首页只做索引</h2>
+  <div class="pagemap">
+    <div class="page page--home"><b>首页</b><code>/</code><p>封面 · 引文 · 精选 3 · 地图带 · 胶片 5 · 收束</p></div>
+    <div class="page"><b>旅程</b><code>/journeys.html</code><p>全部旅程，按年份分组的时间轴索引</p></div>
+    <div class="page"><b>旅程详情</b><code>/trip.html?id=</code><p>一次旅程：封面、行程条、轨迹、照片</p></div>
+    <div class="page"><b>照片档案</b><code>/photos.html</code><p>全量照片，按年 / 旅程 / 地点筛选</p></div>
+    <div class="page"><b>足迹地图</b><code>/map.html</code><p>全屏地图 + 侧栏列表，编号与图钉对应</p></div>
+  </div>
+  <div class="swatches">
+    <span class="sw"><i style="background:#f7f3ea"></i>纸 #f7f3ea</span>
+    <span class="sw"><i style="background:#f1ebdd"></i>深一档 #f1ebdd</span>
+    <span class="sw"><i style="background:#b4543a"></i>砖红 #b4543a</span>
+    <span class="sw"><i style="background:#9c452e"></i>砖红·文字 #9c452e</span>
+    <span class="sw"><i style="background:#2b2620"></i>墨 #2b2620</span>
+    <span class="sw"><i style="background:#6f6455"></i>muted #6f6455</span>
+  </div>
+</section>
+
+</body>
+</html>
