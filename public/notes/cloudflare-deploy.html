@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用 Cloudflare 免费托管静态站点 · 黄翀与</title>
+<meta name="description" content="把静态站点托管到 Cloudflare Workers，绑定自己的域名并开启 HTTPS 的完整过程，以及 DNS 解析、NS 替换与构建失败的排查记录。">
+<link rel="canonical" href="https://shackle0412.vip/notes/cloudflare-deploy.html">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<main class="article">
+  <a class="article__back" href="../index.html">← 返回首页</a>
+  <h1>用 Cloudflare 免费托管静态站点：从 GitHub 仓库到自己的域名</h1>
+  <p class="article__meta">2026-10-21 · 部署笔记 · 约 5 分钟读完</p>
+
+  <p>
+    给个人主页找一个"能给别人看"的地址，通常有两条路：买国内主机（要备案、按年付费），
+    或者把静态文件放到 Cloudflare 这类平台上（免费、自带 HTTPS、推一次代码就自动部署）。
+    这个站走的是第二条路。下面是完整过程，以及我中途真正卡住的地方。
+  </p>
+
+  <h2>整体链路</h2>
+  <p>只有四个环节，中间没有任何编译步骤：</p>
+  <pre><code>本地 HTML / CSS / JS
+      └─ git push → GitHub 仓库
+                        └─ Cloudflare Workers（连接 Git，自动构建）
+                              └─ 自定义域名 shackle0412.vip + 自动 HTTPS</code></pre>
+  <p>
+    因为是纯静态页面，<strong>不需要 Node、不需要打包</strong>：写什么文件，线上就是什么文件。
+    这也是我把构建命令留空的原因——没有构建，就没有构建失败。
+  </p>
+
+  <h2>四个步骤</h2>
+
+  <h3>1. 本地写好文件</h3>
+  <p>
+    站点放在一个 <code>public/</code> 目录里：<code>index.html</code>、<code>styles.css</code>、<code>app.js</code>，
+    再加 SEO 需要的 <code>robots.txt</code>、<code>sitemap.xml</code>、<code>404.html</code> 和 <code>assets/</code>。
+    本地预览用一条命令就能起一个 HTTP 服务，改完刷新即可。
+  </p>
+
+  <h3>2. 推到 GitHub</h3>
+  <p>
+    仓库公开或私有都可以（私有仓库同样能被 Cloudflare 读取）。
+    我的做法是本地 <code>git init</code> 之后建仓库并推送，让 GitHub 上有一份"源文件备份"，
+    这样换任何托管平台都只是改一个连接。
+  </p>
+
+  <h3>3. Cloudflare Workers 连接 Git 仓库</h3>
+  <ul>
+    <li>创建 Worker → 连接到 Git 仓库 → 选中刚才的仓库</li>
+    <li>构建命令：<strong>留空</strong>（没有构建步骤）</li>
+    <li>部署命令：<code>npx wrangler deploy</code></li>
+    <li>静态资源目录写进 <code>wrangler.jsonc</code>：<code>assets.directory</code> 指向 <code>./public</code></li>
+  </ul>
+  <p>
+    之后每次 <code>git push</code>，Cloudflare 会自动构建并发布，构建历史和每次的版本 ID 都能在控制台看到。
+  </p>
+
+  <h3>4. 绑定自己的域名</h3>
+  <p>
+    在 Worker 的「域」里添加自定义域名，Cloudflare 会自动为该域名建好所需的 DNS 记录并签发证书。
+    前提是这个域名已经作为一个站点（zone）添加进 Cloudflare 账户，并且<strong>域名的 NS 已经指向 Cloudflare</strong>。
+  </p>
+  <blockquote>
+    NS 是<strong>替换</strong>，不是新增。要到域名注册商的控制台里，把原来的两条 NS 记录<strong>改</strong>成
+    Cloudflare 给的两条；添加第三、第四条只会让解析变得不确定。
+  </blockquote>
+
+  <h2>真正卡住我的五个坑</h2>
+
+  <h3>坑 1：<code>workers.dev</code> 的默认域名不稳定</h3>
+  <p>
+    部署成功后会先拿到一个 <code>*.workers.dev</code> 的地址。这个域名在部分网络环境下解析结果异常，
+    时快时慢、甚至打不开——换句话说，它<strong>不能作为"发给别人看"的最终地址</strong>。
+    这也是为什么"绑定自己的域名"不是可选装饰，而是必需品。
+  </p>
+
+  <h3>坑 2：<code>_redirects</code> 写错会让构建直接失败</h3>
+  <p>
+    我为了让 <code>www</code> 跳到主域名，加了一个 <code>_redirects</code> 文件，把来源写成了完整网址：
+  </p>
+  <pre><code># 错误写法（我当时的实际配置）
+https://www.shackle0412.vip/*  https://shackle0412.vip/:splat  301</code></pre>
+  <p>
+    结果构建 25 秒后失败。原因是这个文件的<strong>来源必须是路径</strong>（比如 <code>/*</code>），
+    不能是完整 URL；跨域名的跳转应该用 Cloudflare 的「重定向规则」，而不是这个文件。
+    改成下面这样、或者干脆删掉它，构建立刻恢复：
+  </p>
+  <pre><code># 正确写法（仅限同域内的路径跳转）
+/*  /index.html  200</code></pre>
+
+  <h3>坑 3：域名实名审核期间，改 NS 是不会生效的</h3>
+  <p>
+    国内注册商注册的域名要实名认证。审核期间域名处于 <code>serverHold</code> 状态：
+    DNS 查询不到任何 NS 委派记录，此时在注册商后台把 NS 改成 Cloudflare 的两条也没用——
+    注册局的委派还没放出来。判断方法很简单，直接查一下：
+  </p>
+  <pre><code># 有委派：返回两条 NS
+# 无委派：ENOTFOUND / Non-existent domain
+node -e "require('dns').promises.resolveNs('你的域名').then(console.log).catch(e=>console.log(e.code))"</code></pre>
+  <p>看到 <code>ENOTFOUND</code> 就先等审核，别反复改配置。</p>
+
+  <h3>坑 4：构建成功 ≠ 新版上线</h3>
+  <p>
+    控制台里能看到一条绿色的构建记录，但页面上仍是旧内容——先别慌着怀疑缓存。
+    最快的验证办法是打开一个<strong>内容会随改动变化的小文件</strong>（比如 <code>sitemap.xml</code>）：
+    如果里面已经是新域名，说明新版本确实生效了。
+  </p>
+
+  <h3>坑 5：分享卡片图要自己准备</h3>
+  <p>
+    <code>og:image</code> 指向的图片如果没有真的放在对应路径上，把链接发到微信、QQ、
+    社交平台时就不会有缩略图，只有一行光秃秃的网址。
+    按 <strong>1200×630</strong> 做一张放上去，成本极低，效果差别很大。
+  </p>
+
+  <h2>成本</h2>
+  <ul>
+    <li>托管：<strong>0 元</strong>（Cloudflare 免费套餐，含自动 HTTPS 与全球 CDN）</li>
+    <li>域名：约 ¥30 – 90 / 年，取决于后缀与是否首年优惠，注意看<strong>续费价</strong></li>
+    <li>时间：第一次从零到上线，大约 30 分钟（不含域名实名审核的等待）</li>
+  </ul>
+
+  <p>
+    一句话总结：<strong>静态站点不要买服务器</strong>——写好文件、推到 GitHub、交给 Cloudflare，
+    剩下的精力留给内容本身。
+  </p>
+
+  <a class="article__back" href="../index.html">← 返回首页</a>
+</main>
+
+</body>
+</html>

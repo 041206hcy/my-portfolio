@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>从原始点云到样地特征矩阵：无人机 LiDAR 测林分的 7 个阶段 · 黄翀与</title>
+<meta name="description" content="一次外业、两套载荷、三次质检、一份真值：无人机 LiDAR 与多光谱在林业调查中的作业链、关键判据与特征矩阵构建。">
+<link rel="canonical" href="https://shackle0412.vip/notes/lidar-to-feature-matrix.html">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<main class="article">
+  <a class="article__back" href="../index.html">← 返回首页</a>
+  <h1>从原始点云到样地特征矩阵：无人机 LiDAR 测林分的 7 个阶段</h1>
+  <p class="article__meta">2026-10-21 · 工作笔记 · 数据生产链路</p>
+
+  <p>
+    森林参数的遥感反演，成败往往不在模型里，而在模型之前：<strong>点云怎么处理、影像怎么配准、样地真值怎么来</strong>。
+    这条链路可以压缩成一句话——<strong>一次外业、两套载荷、三次质检、一份真值</strong>：
+    同一次外业同时完成航飞与样地调查以减少时相差异，两套载荷分别提供结构信息与光谱信息，
+    在原始数据、空三成果、最终产品三个节点各设一次质检，而样地每木检尺数据是唯一的真值来源。
+  </p>
+
+  <h2>七个阶段</h2>
+  <pre><code>规划 → 控制 → 飞行 → 空三 → 匹配 → 点云 → 检核</code></pre>
+  <p>每个阶段的输入、输出与判据都要先写清楚，否则最容易出现的局面是：数据生产还没完成，就已经在调参了。</p>
+
+  <h2>几个必须卡住的判据</h2>
+
+  <h3>1. 先定成果精度，再反算航高</h3>
+  <p>不是"先定航高再看结果"，而是由 GSD 与点密度反推飞行参数：</p>
+  <pre><code>GSD (cm/px) = H (m) × p (μm) / [ f (mm) × 10 ]
+反算航高    H (m) = GSD (cm) × f (mm) × 10 / p (μm)</code></pre>
+  <p>
+    例如像元尺寸 <code>p = 3.5 μm</code>、焦距 <code>f = 8.8 mm</code>：航高 100 m 时 GSD ≈ 3.98 cm；
+    若要求 GSD = 8 cm，则航高需要约 201 m——已经超过 120 m 的真高限制，
+    这时只能换更长焦距的镜头，或者接受更粗的 GSD。这一步不做，载荷选型会和精度指标直接互斥。
+  </p>
+
+  <h3>2. LiDAR 的点密度，和 GSD 没有关系</h3>
+  <p>点密度由脉冲重复频率、航速、航高与扫描角共同决定：</p>
+  <pre><code>ρ (点/m²) ≈ PRF (Hz) × n / [ v (m/s) × W (m) ]</code></pre>
+  <p>n 为有效回波数，W 为地面扫描幅宽。实际取值应以载荷厂商的航线规划软件试算为准，简化式不能直接当验收依据。</p>
+
+  <h3>3. 林业场景的重叠度，要高于常规地形测绘</h3>
+  <p>
+    杉木冠层连续、纹理弱、遮挡强，摄影测量重叠不足会直接导致空三断片和冠层空洞；
+    而 LiDAR 是主动测距，对立体匹配没有需求，重叠度按幅宽覆盖设定即可。
+    <strong>两类载荷不能套用同一组参数。</strong>
+  </p>
+
+  <h3>4. 曝光时间与运动模糊</h3>
+  <pre><code>航向基线 B (m)    = GSD (m/px) × Wpx × (1 − 航向重叠)
+曝光间隔 Δt (s)   = B / v
+最长曝光 t_exp    ≤ GSD / (v × k)，k 取 1.5 ~ 2</code></pre>
+  <p>
+    以 GSD = 5 cm、像幅宽 5000 px、航向重叠 80%、航速 6 m/s 为例：基线 50 m，曝光间隔约 8.3 s，
+    而最长曝光时间约 5.6 ms——也就是快门要快于 1/180 s。实际操作统一用 1/1000 s 或更快，
+    并固定光圈与 ISO，避免自动曝光带来的帧间辐射差异。
+  </p>
+
+  <h3>5. 丘陵林区必须开仿地飞行</h3>
+  <p>固定航高的相对高度会随地形起伏剧烈变化，直接破坏 GSD 的一致性。</p>
+
+  <blockquote>
+    浙江省内微型 / 轻型无人机作业一般需要完成实名登记并在综合管理平台报备飞行计划，
+    作业真高通常不超过 120 m；林区超视距作业需另行取得许可。具体以作业时当地管理规定为准。
+  </blockquote>
+
+  <h2>两条链路，在同一个网格上汇合</h2>
+  <p>LiDAR 链路是这样的：</p>
+  <pre><code>原始点云 (LAZ)
+  └→ 去噪 → 地面点分类 → DEM / DTM → 归一化点云 → CHM (0.5 ~ 1 m)</code></pre>
+  <p>
+    摄影测量链路则产出正射影像与实景三维模型。两条链路最终必须汇合到
+    <strong>同一坐标系下的同一规则网格</strong>（研究区用 EPSG:4547）——
+    这是后面所有特征能在同一张表里对齐的前提，也是整个流程里最容易被忽视的一环。
+  </p>
+
+  <h2>输出：样地—特征矩阵</h2>
+  <p>一行一块样地，列是特征，末几列是真值与建模集标记。特征大致分四类：</p>
+  <ul>
+    <li><strong>高度统计</strong>：H_mean、H_max、H_std、H_cv、H_p25 / p50 / p75 / p90 / p95、偏度与峰度</li>
+    <li><strong>冠层与回波</strong>：CC_ratio、D1_ratio、D5_ratio、Gini、FHD、LAI_p95</li>
+    <li><strong>多光谱</strong>：B / NIR / RE 均值，以及 NDVI、NGRDI、TGI</li>
+    <li><strong>纹理</strong>：方差与同质性（Tex_var、Tex_Hom）</li>
+  </ul>
+
+  <h2>精度评价分两层</h2>
+  <ul>
+    <li>
+      <strong>数据层</strong>：像控点与检查点各自独立观测两次（间隔 ≥60 min），
+      比较平面与高程互差、解状态、PDOP 与卫星数，用来验证几何精度——
+      GSD 是像素分辨率，不等于定位精度，两者要分开评价。
+    </li>
+    <li>
+      <strong>模型层</strong>：样地实测值与预测值对照，计算残差、相对误差与
+      R² / RMSE / MAE / rRMSE，并做残差的空间诊断。
+    </li>
+  </ul>
+
+  <p>
+    最后留一句提醒给自己：凡是设备型号、材积式系数、异速生长方程参数，
+    都要在正式引用前核对现行国家标准、林业行业标准或当地材积表，
+    <strong>不能拿一个"看起来合理"的数字直接用</strong>。
+  </p>
+
+  <a class="article__back" href="../index.html">← 返回首页</a>
+</main>
+
+</body>
+</html>

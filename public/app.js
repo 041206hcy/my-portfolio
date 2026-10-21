@@ -2,7 +2,7 @@
 document.getElementById('year').textContent = new Date().getFullYear();
 
 // 滚动淡入
-const targets = document.querySelectorAll('.card, .skills__group, .section__text');
+const targets = document.querySelectorAll('.card, .note, .skills__group, .section__text');
 targets.forEach(el => el.classList.add('reveal'));
 
 const io = new IntersectionObserver((entries) => {
