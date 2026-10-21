@@ -4,6 +4,11 @@
   "name": "myfirst",
   "compatibility_date": "2026-04-21",
   "main": "src/index.js",
+  // 自定义域名：部署时 wrangler 会自动在 DNS 里建记录、签发证书，无需手工加 A 记录
+  "routes": [
+    { "pattern": "shackle0412.vip", "custom_domain": true },
+    { "pattern": "www.shackle0412.vip", "custom_domain": true }
+  ],
   "assets": {
     "directory": "./public",
     "binding": "ASSETS",
