@@ -23,6 +23,17 @@
 
 <main>
 
+  <section class="section" id="auth-bar" hidden>
+    <h2 class="section__title">需要管理口令</h2>
+    <p class="section__text">
+      这个后台只有你本人能用。口令保存在这台设备的浏览器里；服务端只存它的 SHA-256 哈希，不存明文。
+    </p>
+    <div class="bar">
+      <label class="bar__field">口令 <input type="password" id="auth-token" autocomplete="current-password" placeholder="粘贴管理口令"></label>
+      <button class="btn btn--primary" type="button" id="auth-save">保存并连接</button>
+    </div>
+  </section>
+
   <section class="section" id="upload">
     <h2 class="section__title">上传照片</h2>
     <p class="section__text">

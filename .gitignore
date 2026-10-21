@@ -5,3 +5,8 @@ Thumbs.db
 .wrangler/
 .devdata/
 harness.*.log
+
+# 一次性脚本的备份与探测输出
+.patch-backup/
+tools/probe-*.html
+tools/probe-*.json

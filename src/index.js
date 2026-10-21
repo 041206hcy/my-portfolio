@@ -1,6 +1,6 @@
 // 照片旅行站 · Cloudflare Worker
 // 静态资源 + 少量接口：公开读（地图/照片墙）、管理写（上传、标点、分组）
-// 管理接口全部挂在 /api/admin/* 下，线上由 Cloudflare Access 在 Worker 之外拦一层。
+// 管理接口全部挂在 /api/admin/* 下，由 adminAllowed() 用「管理口令」把门（见文件末尾）。
 
 const IMG_CACHE = 'public, max-age=31536000, immutable';
 const VISIBILITIES = ['public', 'link', 'private'];
@@ -37,8 +37,7 @@ export default {
       if (path === '/api/site') return await siteData(env);
       if (path === '/api/photos') return await listPhotos(env, url);
       if (path.startsWith('/api/admin/')) {
-        // Access 之外的兜底：线上打开 REQUIRE_ACCESS=1 后，没带 Access 身份头的写请求一律拒绝
-        if (env.REQUIRE_ACCESS === '1' && !request.headers.get('cf-access-authenticated-user-email')) {
+        if (!(await adminAllowed(request, env))) {
           return json({ error: 'unauthorized' }, { status: 401 });
         }
         return await adminApi(request, env, url);
@@ -49,6 +48,30 @@ export default {
     }
   },
 };
+
+/* ---------------- 管理接口的两道锁 ----------------
+   1) ADMIN_TOKEN_SHA256：管理口令的 SHA-256（十六进制）。口令本身永远不进仓库，
+      只存在你自己浏览器的 localStorage 里，每次请求带 x-admin-token 头。
+      （放哈希而不是明文，是因为这个仓库是公开的。）
+   2) REQUIRE_ACCESS=1：额外要求 Cloudflare Access 注入的身份头 —— 等自定义域名
+      通了、能在 Access 里建应用之后再打开；现在 workers.dev 上配不了，保持 0。
+   两道都留了开关：一个都不配 = 本地开发，完全不拦。
+*/
+async function sha256Hex(text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function adminAllowed(request, env) {
+  if (env.REQUIRE_ACCESS === '1' && !request.headers.get('cf-access-authenticated-user-email')) {
+    return false;
+  }
+  const expect = String(env.ADMIN_TOKEN_SHA256 || '').trim().toLowerCase();
+  if (!expect) return true;
+  const got = String(request.headers.get('x-admin-token') || '').trim();
+  if (!got) return false;
+  return (await sha256Hex(got)) === expect;
+}
 
 /* ---------------- 图片：存在 D1 里（不依赖 R2，免费版就能用） ---------------- */
 

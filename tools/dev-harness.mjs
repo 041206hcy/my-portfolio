@@ -120,7 +120,14 @@ const ASSETS = {
 
 /* ---------------- 起服务 ---------------- */
 
-const env = { DB, ASSETS, REQUIRE_ACCESS: '0' };
+const env = {
+  DB,
+  ASSETS,
+  REQUIRE_ACCESS: '0',
+  // 本地默认不设口令（开发方便）；想验服务端那道锁就设个环境变量再起：
+  //   $env:ADMIN_TOKEN_SHA256 = "<hex>" ; node tools/dev-harness.mjs --port 8788
+  ADMIN_TOKEN_SHA256: process.env.ADMIN_TOKEN_SHA256 || '',
+};
 const worker = (await import(pathToFileURL(path.join(ROOT, 'src', 'index.js')).href)).default;
 
 const server = createServer(async (req, res) => {

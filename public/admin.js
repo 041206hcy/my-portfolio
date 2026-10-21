@@ -26,14 +26,32 @@
     map: null,
   };
 
+  /* ---------------- 管理口令 ---------------- */
+  // 服务端只存口令的 SHA-256（wrangler.jsonc 里的 ADMIN_TOKEN_SHA256），明文只留在本机浏览器。
+  const TOKEN_KEY = 'photosite-admin-token';
+  const token = () => { try { return localStorage.getItem(TOKEN_KEY) || ''; } catch (e) { return ''; } };
+  const withToken = (headers) => {
+    const h = Object.assign({}, headers);
+    const t = token();
+    if (t) h['x-admin-token'] = t;
+    return h;
+  };
+  const authBar = (show) => { const el = $('auth-bar'); if (el) el.hidden = !show; };
+
   /* ---------------- 请求封装 ---------------- */
 
   const assertOk = async (res) => {
+    if (res.status === 401) {
+      authBar(true);
+      throw new Error('需要管理口令：在页面顶部填入口令并保存后重试');
+    }
     if (!res.ok) throw new Error(`HTTP ${res.status} ${(await res.text()).slice(0, 140)}`);
     return res;
   };
   const api = async (path, init) => {
-    const res = await assertOk(await fetch(path, init));
+    const opts = Object.assign({}, init);
+    opts.headers = withToken(init && init.headers);
+    const res = await assertOk(await fetch(path, opts));
     return res.json();
   };
   const postJson = (path, body) => api(path, {
@@ -109,10 +127,10 @@
       const pid = newPid();
       status.textContent = '上传中…';
       await assertOk(await fetch(`/api/admin/blob?pid=${pid}&kind=thumb`, {
-        method: 'POST', headers: { 'content-type': 'image/webp' }, body: thumb.blob,
+        method: 'POST', headers: withToken({ 'content-type': 'image/webp' }), body: thumb.blob,
       }));
       await assertOk(await fetch(`/api/admin/blob?pid=${pid}&kind=web`, {
-        method: 'POST', headers: { 'content-type': 'image/webp' }, body: web.blob,
+        method: 'POST', headers: withToken({ 'content-type': 'image/webp' }), body: web.blob,
       }));
 
       const lat = gps && typeof gps.latitude === 'number' ? gps.latitude : null;
@@ -453,6 +471,20 @@
   /* ---------------- 启动 ---------------- */
 
   (async () => {
+    // 口令输入框只在服务端返回 401 时才显形（authBar(true) 在 assertOk 里）
+    const tokenInput = $('auth-token');
+    if (tokenInput) {
+      tokenInput.value = token();
+      $('auth-save').addEventListener('click', () => {
+        try { localStorage.setItem(TOKEN_KEY, tokenInput.value.trim()); } catch (e) { /* 隐私模式忽略 */ }
+        authBar(false);
+        notice('口令已保存，正在重新读取数据…');
+        load()
+          .then(() => notice('已连接，可以开始上传了。'))
+          .catch((err) => notice('连接失败：' + err.message, true));
+      });
+      tokenInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') $('auth-save').click(); });
+    }
     if (typeof L !== 'undefined') ensureMap();
     else $('pin-hint').textContent = '地图组件没加载出来（vendor/leaflet.js 缺失）。标点功能不可用。';
     try {
