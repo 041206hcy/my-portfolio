@@ -29,22 +29,34 @@
   const box = $('lightbox');
   const boxImg = $('lightbox-img');
   const boxCap = $('lightbox-cap');
+  const boxClose = $('lightbox-close');
+  // 关闭后把焦点还给「打开它的那张缩略图」，键盘用户不会被丢回页首
+  let opener = null;
 
   const openBox = (key, caption) => {
     if (!key) return;
+    const cap = caption || '';
+    opener = document.activeElement;
     boxImg.src = imgSrc(key);
-    boxCap.textContent = caption || '';
+    boxImg.alt = cap || '旅行照片';
+    boxCap.textContent = cap;
+    boxCap.hidden = !cap;
     box.hidden = false;
     document.body.style.overflow = 'hidden';
+    if (boxClose) boxClose.focus();
   };
   const closeBox = () => {
     box.hidden = true;
     boxImg.src = '';
+    boxImg.alt = '';
     document.body.style.overflow = '';
+    if (opener && typeof opener.focus === 'function') opener.focus();
+    opener = null;
   };
 
+  // 缩略图现在是真 <button>，回车 / 空格会自己派发 click，这里只处理鼠标和键盘的 click
   document.addEventListener('click', (e) => {
-    const hit = e.target.closest('[data-web]');
+    const hit = e.target.closest ? e.target.closest('[data-web]') : null;
     if (!hit) return;
     e.preventDefault();
     openBox(hit.dataset.web, hit.dataset.cap || '');
@@ -53,7 +65,13 @@
     if (e.target === box || e.target.closest('.lightbox__close')) closeBox();
   });
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !box.hidden) closeBox();
+    if (box.hidden) return;
+    if (e.key === 'Escape') { closeBox(); return; }
+    // 灯箱里只有关闭按钮一个可聚焦元素，Tab 不该跑到背后的页面上去
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      if (boxClose) boxClose.focus();
+    }
   });
 
   /* ---------------- 地图 ---------------- */
@@ -73,14 +91,23 @@
     return map;
   };
 
-  const popupHtml = (p) => `
+  // 图钉和弹窗缩略图原本都是裸 <img>：键盘 Tab 不到，回车也打不开。
+  // 现在缩略图包在 <button> 里，标签用 aria-label，图片本身当装饰（alt=""）。
+  const popupHtml = (p) => {
+    const place = p.place || '未命名地点';
+    const cap = p.caption || p.place || '';
+    const extra = p.caption && p.caption !== p.place ? p.caption : '';
+    return `
     <div class="pop">
-      <img src="${esc(imgSrc(p.key_thumb))}" alt="${esc(p.caption || '旅行照片')}" data-web="${esc(p.key_web)}" data-cap="${esc(p.caption || '')}" loading="lazy">
+      <button class="pop__open" type="button" data-web="${esc(p.key_web)}" data-cap="${esc(cap)}" aria-label="查看大图：${esc(cap || place)}">
+        <img src="${esc(imgSrc(p.key_thumb))}" alt="" loading="lazy">
+      </button>
       <div class="pop__body">
-        <strong>${esc(p.place || '未命名地点')}</strong>
-        <div class="pop__meta">${esc(fmtDate(p.shot_at) || '时间未知')}${p.caption ? ' · ' + esc(p.caption) : ''}</div>
+        <strong>${esc(place)}</strong>
+        <div class="pop__meta">${esc(fmtDate(p.shot_at) || '时间未知')}${extra ? ' · ' + esc(extra) : ''}</div>
       </div>
     </div>`;
+  };
 
   const drawMap = (photos) => {
     const pinned = photos.filter((p) => p.lat !== null && p.lng !== null);
@@ -102,7 +129,9 @@
     cluster.clearLayers();
     const bounds = L.latLngBounds();
     for (const p of pinned) {
-      const marker = L.marker([p.lat, p.lng]);
+      // alt / title 让图钉不是一排「Marker」：读屏能念出地名，鼠标悬停也有提示
+      const label = p.place || '照片位置';
+      const marker = L.marker([p.lat, p.lng], { alt: label, title: label });
       marker.bindPopup(popupHtml(p), { maxWidth: 260, minWidth: 200 });
       cluster.addLayer(marker);
       bounds.extend([p.lat, p.lng]);
@@ -130,14 +159,15 @@
       const n = counts.get(t.id) || 0;
       const cover = t.cover_id ? photos.find((p) => p.id === t.cover_id) : null;
       const coverThumb = cover ? cover.key_thumb : (photos.find((p) => p.trip_id === t.id) || {}).key_thumb;
+      const meta = [fmtRange(t.start_date, t.end_date), n ? `${n} 张照片` : ''].filter(Boolean).join(' · ');
       return `
         <article class="trip-card">
           ${coverThumb ? `<img class="trip-card__cover" src="${esc(imgSrc(coverThumb))}" alt="${esc(t.title)}" loading="lazy">` : ''}
           <div class="trip-card__body">
             <h3 class="trip-card__title">${esc(t.title)}</h3>
-            <p class="trip-card__meta">${esc(fmtRange(t.start_date, t.end_date))}${n ? ` · ${n} 张照片` : ''}</p>
+            ${t.subtitle ? `<p class="trip-card__subtitle">${esc(t.subtitle)}</p>` : ''}
+            ${meta ? `<p class="trip-card__meta">${esc(meta)}</p>` : ''}
             ${t.summary ? `<p class="trip-card__summary">${esc(t.summary)}</p>` : ''}
-            <p class="trip-card__hint">单次旅程页（轨迹回放、票据）在第二轮做</p>
           </div>
         </article>`;
     }).join('');
@@ -148,15 +178,20 @@
   let wallPhotos = [];
   let wallShown = 0;
 
-  const wallItem = (p) => `
+  const wallItem = (p) => {
+    const cap = p.caption || p.place || '';
+    const date = fmtDate(p.shot_at);
+    return `
     <figure class="wall__item">
-      <img src="${esc(imgSrc(p.key_thumb))}" alt="${esc(p.caption || p.place || '旅行照片')}"
-           data-web="${esc(p.key_web)}" data-cap="${esc(p.caption || '')}" loading="lazy">
-      <figcaption>
+      <button class="wall__open" type="button" data-web="${esc(p.key_web)}" data-cap="${esc(cap)}" aria-label="查看大图：${esc(cap || '旅行照片')}">
+        <img src="${esc(imgSrc(p.key_thumb))}" alt="" loading="lazy">
+      </button>
+      ${p.place || date ? `<figcaption>
         <span class="wall__place">${esc(p.place || '')}</span>
-        <span class="wall__date">${esc(fmtDate(p.shot_at))}</span>
-      </figcaption>
+        <span class="wall__date">${esc(date)}</span>
+      </figcaption>` : ''}
     </figure>`;
+  };
 
   const drawMore = () => {
     const host = $('photo-wall');
@@ -202,9 +237,10 @@
     const trips = data.trips || [];
     const stats = data.stats || {};
 
+    // stats.pinned 是「已定位的照片数」，不是地点数 —— 地点数由地图那行去算
     $('stats').innerHTML = [
       `<b>${stats.photos || 0}</b> 张照片`,
-      `<b>${stats.pinned || 0}</b> 个地点`,
+      `<b>${stats.pinned || 0}</b> 张有坐标`,
       `<b>${stats.trips || 0}</b> 次旅程`,
     ].join('<span class="stat-dot">·</span>');
 

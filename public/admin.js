@@ -14,6 +14,20 @@
     if (Number.isNaN(d.getTime())) return String(v).slice(0, 10);
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   };
+  const fmtRange = (a, b) => {
+    if (!a && !b) return '';
+    if (a && b) return fmtDate(a) === fmtDate(b) ? fmtDate(a) : `${fmtDate(a)} – ${fmtDate(b)}`;
+    return fmtDate(a || b);
+  };
+  // 界面上不出现 public / link / private 这种库里的取值
+  const VIS_LABEL = { public: '公开', link: '仅链接', private: '仅自己' };
+  const visLabel = (v) => VIS_LABEL[v] || v || '';
+  // 缩略图副行原来直接把 trip 的 uuid 打在脸上
+  const tripName = (id) => {
+    if (!id) return '';
+    const t = state.trips.find((x) => x.id === id);
+    return t ? t.title : '';
+  };
 
   const state = {
     photos: [],
@@ -57,9 +71,19 @@
   const postJson = (path, body) => api(path, {
     method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body),
   });
-  const notice = (msg, bad) => {
-    $('drop-hint').textContent = msg;
-    $('drop-hint').classList.toggle('is-bad', !!bad);
+  // 反馈写到触发的那个区块里去：在上传区显示「删除完成」离操作按钮太远
+  const HINT = {
+    upload: 'drop-hint',
+    auth: 'auth-status',
+    pending: 'pin-status',
+    manage: 'manage-status',
+    trip: 'trip-status',
+  };
+  const notice = (msg, bad, where) => {
+    const el = $(HINT[where] || HINT.upload);
+    if (!el) return;
+    el.textContent = msg;
+    el.classList.toggle('is-bad', !!bad);
   };
 
   /* ---------------- 上传：浏览器内压两档 ---------------- */
@@ -191,7 +215,7 @@
       <img src="${esc(imgSrc(p.key_thumb))}" alt="" loading="lazy">
       <span class="thumb__meta">
         <span class="thumb__place">${esc(p.place || (p.lat === null ? '待标点' : '有坐标'))}</span>
-        <span class="thumb__sub">${esc(fmtDate(p.shot_at) || '时间未知')} · ${esc(p.visibility)}${p.trip_id ? ' · ' + esc(p.trip_id) : ''}</span>
+        <span class="thumb__sub">${esc([fmtDate(p.shot_at) || '时间未知', visLabel(p.visibility), tripName(p.trip_id)].filter(Boolean).join(' · '))}</span>
       </span>
     </label>`;
 
@@ -212,7 +236,7 @@
           <div class="trip-admin__row">
             <div>
               <strong>${esc(t.title)}</strong>
-              <span class="trip-admin__meta">${esc(fmtDate(t.start_date) || '')}${t.end_date ? ' – ' + esc(fmtDate(t.end_date)) : ''} · ${n} 张 · ${esc(t.visibility)}</span>
+              <span class="trip-admin__meta">${esc([fmtRange(t.start_date, t.end_date), n ? `${n} 张` : '还没有照片', visLabel(t.visibility)].filter(Boolean).join(' · '))}</span>
             </div>
             <div class="trip-admin__ops">
               <button class="btn" type="button" data-trip-edit="${esc(t.id)}">编辑</button>
@@ -352,9 +376,9 @@
       state.pendingSel.clear();
       $('place-input').value = '';
       await load();
-      notice('打点完成。');
+      notice('打点完成。', false, 'pending');
     } catch (err) {
-      notice('打点失败：' + err.message, true);
+      notice('打点失败：' + err.message, true, 'pending');
     } finally {
       updateButtons();
     }
@@ -367,9 +391,9 @@
       await postJson('/api/admin/bulk-set', { ids: [...state.allSel], trip_id: tripId || null });
       state.allSel.clear();
       await load();
-      notice(tripId ? '已归入旅程。' : '已移出旅程（回到日常）。');
+      notice(tripId ? '已归入旅程。' : '已移出旅程（回到日常）。', false, 'manage');
     } catch (err) {
-      notice('归入失败：' + err.message, true);
+      notice('归入失败：' + err.message, true, 'manage');
     }
   });
 
@@ -380,9 +404,9 @@
       await postJson('/api/admin/bulk-set', { ids: [...state.allSel], visibility });
       state.allSel.clear();
       await load();
-      notice('可见性已改。');
+      notice('可见性已改。', false, 'manage');
     } catch (err) {
-      notice('改可见性失败：' + err.message, true);
+      notice('改可见性失败：' + err.message, true, 'manage');
     }
   });
 
@@ -397,9 +421,9 @@
       }
       state.allSel.clear();
       await load();
-      notice(`已删除 ${ids.length} 张。`);
+      notice(`已删除 ${ids.length} 张。`, false, 'manage');
     } catch (err) {
-      notice('删除失败：' + err.message, true);
+      notice('删除失败：' + err.message, true, 'manage');
     }
   });
 
@@ -410,6 +434,7 @@
     const id = $('trip-id').value;
     const payload = {
       title: $('trip-title').value.trim(),
+      subtitle: $('trip-subtitle').value.trim() || null,
       start_date: $('trip-start').value || null,
       end_date: $('trip-end').value || null,
       summary: $('trip-summary').value.trim() || null,
@@ -421,15 +446,16 @@
       await postJson('/api/admin/trip', payload);
       resetTripForm();
       await load();
-      notice('旅程已保存。');
+      notice('旅程已保存。', false, 'trip');
     } catch (err) {
-      notice('保存旅程失败：' + err.message, true);
+      notice('保存旅程失败：' + err.message, true, 'trip');
     }
   });
 
   const resetTripForm = () => {
     $('trip-id').value = '';
     $('trip-title').value = '';
+    $('trip-subtitle').value = '';
     $('trip-start').value = '';
     $('trip-end').value = '';
     $('trip-summary').value = '';
@@ -445,6 +471,7 @@
       if (!t) return;
       $('trip-id').value = t.id;
       $('trip-title').value = t.title || '';
+      $('trip-subtitle').value = t.subtitle || '';
       $('trip-start').value = t.start_date || '';
       $('trip-end').value = t.end_date || '';
       $('trip-summary').value = t.summary || '';
@@ -461,9 +488,9 @@
       try {
         await postJson('/api/admin/trip-delete', { id: t.id });
         await load();
-        notice('旅程已删除，照片回到日常。');
+        notice('旅程已删除，照片回到日常。', false, 'trip');
       } catch (err) {
-        notice('删除旅程失败：' + err.message, true);
+        notice('删除旅程失败：' + err.message, true, 'trip');
       }
     }
   });
@@ -478,10 +505,10 @@
       $('auth-save').addEventListener('click', () => {
         try { localStorage.setItem(TOKEN_KEY, tokenInput.value.trim()); } catch (e) { /* 隐私模式忽略 */ }
         authBar(false);
-        notice('口令已保存，正在重新读取数据…');
+        notice('口令已保存，正在重新读取数据…', false, 'auth');
         load()
           .then(() => notice('已连接，可以开始上传了。'))
-          .catch((err) => notice('连接失败：' + err.message, true));
+          .catch((err) => notice('连接失败：' + err.message, true, 'auth'));
       });
       tokenInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') $('auth-save').click(); });
     }

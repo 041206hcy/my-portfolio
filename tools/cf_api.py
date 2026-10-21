@@ -113,6 +113,53 @@ def main() -> None:
         print("all attempts failed:", last)
         return
 
+    if args and args[0] == "zone":
+        zone = "5a71805b70ab7363f6b5de9196d5e2d3"  # shackle0412.vip
+        status, res = call("GET", f"{API}/zones/{zone}")
+        z = res.get("result") or {}
+        print(
+            f"HTTP {status}  {z.get('name')}  status={z.get('status')}  "
+            f"activated_on={z.get('activated_on')}  reason={z.get('activation_failure_reason')}"
+        )
+        print("  期望 NS:", ", ".join(z.get("name_servers") or []))
+        print("  实际 NS:", ", ".join(z.get("observed_name_servers") or []))
+        return
+
+    if args and args[0] == "domain":
+        # 绑定 Worker 自定义域名。JSON 在 python 里构造，避开 PowerShell 传参吃引号的坑。
+        host = args[1]
+        body = {
+            "environment": "production",
+            "hostname": host,
+            "service": "myfirst",
+            "zone_id": "5a71805b70ab7363f6b5de9196d5e2d3",
+        }
+        status, res = call("POST", f"{API}/accounts/{ACCOUNT}/workers/domains", body)
+        print(f"HTTP {status}  {host}  success={res.get('success')}  errors={res.get('errors')}")
+        r = res.get("result") or {}
+        if r:
+            print("  cert_id:", r.get("cert_id"), " enabled:", r.get("enabled"))
+        return
+
+    if args and args[0] == "domains":
+        status, res = call("GET", f"{API}/accounts/{ACCOUNT}/workers/domains")
+        for d in res.get("result") or []:
+            print(
+                f"  {str(d.get('hostname')):<26} -> {d.get('service'):<18} "
+                f"zone={d.get('zone_name'):<16} enabled={d.get('enabled')} cert={bool(d.get('cert_id'))}"
+            )
+        print(f"HTTP {status}")
+        return
+
+    if args and args[0] == "raw":
+        method = args[1]
+        path = args[2]
+        payload = json.loads(args[3]) if len(args) > 3 else None
+        status, res = call(method, API + path, payload)
+        print(f"HTTP {status}")
+        print(json.dumps(res, ensure_ascii=False, indent=2)[:2500])
+        return
+
     if args and args[0] == "apply":
         sql = pathlib.Path("schema.sql").read_text(encoding="utf-8")
         stmts = [clean(s) for s in sql.split(";")]

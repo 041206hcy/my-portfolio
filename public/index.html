@@ -24,7 +24,7 @@
 
 <header class="nav" id="top">
   <a class="nav__brand" href="/">黄翀与的旅程</a>
-  <nav class="nav__links">
+  <nav class="nav__links" aria-label="主导航">
     <a href="#map">地图</a>
     <a href="#trips">旅程</a>
     <a href="#wall">照片墙</a>
@@ -41,7 +41,7 @@
       去过的地方在这张图上连成片。照片从相册传上来，标好位置，就在地图上亮起来；
       攒够一趟，就归成一次旅程。
     </p>
-    <p class="hero__stats" id="stats">正在读取…</p>
+    <p class="hero__stats" id="stats" role="status">正在读取…</p>
     <div class="hero__actions">
       <a class="btn btn--primary" href="#map">看地图</a>
       <a class="btn" href="#wall">翻照片墙</a>
@@ -51,7 +51,7 @@
 
   <section class="section" id="map">
     <h2 class="section__title">地图</h2>
-    <p class="section__text" id="map-hint">正在加载地图…</p>
+    <p class="section__text" id="map-hint" role="status">正在加载地图…</p>
     <div class="map" id="map-canvas"></div>
   </section>
 
@@ -71,8 +71,8 @@
   <p>© <span id="year">2026</span> 黄翀与 · 照片与文字均为本人拍摄整理</p>
 </footer>
 
-<div class="lightbox" id="lightbox" hidden>
-  <button class="lightbox__close" type="button" aria-label="关闭">×</button>
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="照片大图" hidden>
+  <button class="lightbox__close" type="button" id="lightbox-close" aria-label="关闭">×</button>
   <img id="lightbox-img" alt="">
   <p class="lightbox__cap" id="lightbox-cap"></p>
 </div>
