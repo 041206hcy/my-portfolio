@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# 上线后把域名换成你的真实域名
+Sitemap: https://YOUR-DOMAIN.com/sitemap.xml
