@@ -32,6 +32,6 @@
   "vars": {
     // 管理接口的锁：口令的 SHA-256。明文口令只在你浏览器里，仓库里放哈希是安全的。
     "REQUIRE_ACCESS": "0",
-    "ADMIN_TOKEN_SHA256": "874a7b226892c20fd4dd1c7346fbcde86363d3a5a9444a43cbd3e8190059ece8"
+    "ADMIN_TOKEN_SHA256": "d4d3286f9c6b13ae255c49bc7117c3ea14fde7dbcc4f057904adb7e47c8ce277"
   }
 }
