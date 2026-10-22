@@ -134,6 +134,7 @@
   /* ---------------- 板块页：筛选 + 搜索 + 列表 ---------------- */
   const itemHTML = (p) => `<a class="pitem" href="/p/${esc(p.id)}" data-rb="glare tilt reveal">
       <span class="pitem__d">${esc(fmtFull(p.posted_at))}</span>
+      ${coverOf(p) ? `<span class="pitem__thumb"><img src="${esc(coverOf(p))}" alt="" loading="lazy"></span>` : ''}
       <span>
         <h2 class="pitem__t">${esc(p.title)}</h2>
         ${p.excerpt ? `<p class="pitem__x">${esc(p.excerpt)}</p>` : ''}
@@ -147,12 +148,12 @@
 
   /* ---------------- 板块视图：清单 / 项目网格 / 书目清单 / 技能分组 ---------------- */
   // 板块给不同的版式，不是一个模板复制五遍；extra 里放着各板块的结构化字段
-  const VIEW = { life: 'list', learn: 'list', work: 'grid', media: 'rows', skill: 'groups' };
+  const VIEW = { life: 'log', learn: 'list', work: 'grid', media: 'shelf', skill: 'groups' };
 
   /* ---------------- 检索三件套：标签云 / 年表 / 清单-网格切换 ---------------- */
   // 视图选择按板块记在浏览器里；'rich' = 这一块本来的版式，'flat' = 统一清单
   const LS_VIEW = 'photosite-view-';
-  const NATURAL_NAME = { grid: '网格', rows: '书目', groups: '分组', list: '卡片' };
+  const NATURAL_NAME = { grid: '网格', rows: '书目', shelf: '海报墙', log: '随手记', groups: '分组', list: '卡片' };
   const viewOf = (section) => {
     const saved = localStorage.getItem(LS_VIEW + section);
     if (saved === 'rich' || saved === 'flat') return saved;
@@ -272,8 +273,9 @@
     return e && typeof e === 'object' && !Array.isArray(e) ? e : {};
   };
   const coverOf = (p) => {
-    const k = p.cover_key || EX(p).cover || '';
-    return k ? '/img/' + encodeURIComponent(k) : '';
+    const k = String(p.cover_key || EX(p).cover || '');
+    // 只对每一段做编码，别把 '/' 编成 %2F —— Worker 的 /img/<key> 是拿原样 key 去 D1 里取的
+    return k ? '/img/' + k.split('/').map(encodeURIComponent).join('/') : '';
   };
   const linkOf = (p) => {
     const e = EX(p);
@@ -334,6 +336,131 @@
     </a>`;
   };
 
+  // 生活记录：日期 + 可选配图，像一本翻开的随手记
+  const logHTML = (p) => {
+    const cover = coverOf(p);
+    return `<a class="logitem" href="/p/${esc(p.id)}" data-rb="reveal" data-rb-delay="0">
+      <span class="logitem__d">${esc(fmtFull(p.posted_at))}</span>
+      <span class="logitem__b">
+        ${cover ? `<span class="logitem__fig"><img src="${esc(cover)}" alt="" loading="lazy"></span>` : ''}
+        <h2 class="logitem__t">${esc(p.title)}</h2>
+        ${p.excerpt ? `<p class="logitem__x">${esc(p.excerpt)}</p>` : ''}
+        ${
+          tagsOf(p.tags).length
+            ? `<span class="logitem__tags">${tagsOf(p.tags).map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</span>`
+            : ''
+        }
+      </span>
+    </a>`;
+  };
+
+  // 书影音：海报墙。有封面用封面，没有就拿标题字做一块占位，所以空着也不会出现空洞
+  const shelfHTML = (p) => {
+    const e = EX(p);
+    const kind = KIND[String(e.kind || '').toLowerCase()] || e.kind || '记录';
+    const n = Math.max(0, Math.min(5, Math.round(Number(e.rating) || 0)));
+    const cover = coverOf(p);
+    const meta = [e.creator, e.year, e.progress].filter(Boolean).map(esc).join(' · ');
+    return `<a class="shelfitem" href="/p/${esc(p.id)}" data-rb="glare tilt reveal">
+      <span class="shelfitem__fig${cover ? '' : ' shelfitem__fig--blank'}">${
+        cover ? `<img src="${esc(cover)}" alt="" loading="lazy">` : `<span>${esc(p.title)}</span>`
+      }</span>
+      <span class="shelfitem__k">${esc(kind)}${n ? ` · ${'★'.repeat(n)}` : ''}</span>
+      <span class="shelfitem__t">${esc(p.title)}</span>
+      ${meta ? `<span class="shelfitem__m">${meta}</span>` : ''}
+    </a>`;
+  };
+
+  // 技能雷达：只用真能换算成数字的等级；够 3 项才画，不够就不画（不凭空编数据）
+  const LEVEL_NUM = { 了解: 2, 入门: 2, 会用: 3, 常用: 3, 熟练: 4, 精通: 5, 主力: 5 };
+  const levelOf = (v) => {
+    const n = Number(v);
+    if (Number.isFinite(n) && n > 0) return Math.max(1, Math.min(5, n));
+    return LEVEL_NUM[String(v || '').trim()] || 0;
+  };
+  const radarData = (list) =>
+    list
+      .map((p) => ({ name: p.title, v: levelOf(EX(p).level) }))
+      .filter((it) => it.v > 0)
+      .slice(0, 8);
+  const radarHTML = (items) =>
+    items.length < 3
+      ? ''
+      : `<div class="radar-box" data-rb="reveal" data-rb-delay="0">
+      <canvas class="radar" width="480" height="380"></canvas>
+      <p class="radar-note">这张图按每项技能自己的等级画（1–5）；等级写数字，或写「了解 / 会用 / 熟练 / 精通」都认。</p>
+    </div>`;
+  function paintRadars(host, items) {
+    const cv = host.querySelector('.radar');
+    if (!cv || !items || items.length < 3) return;
+    const w = 480;
+    const h = 380;
+    const g = cv.getContext('2d');
+    const cx = w / 2;
+    const cy = h / 2;
+    const R = 132;
+    const N = items.length;
+    const pt = (i, r) => {
+      const a = -Math.PI / 2 + (i * 2 * Math.PI) / N;
+      return [cx + Math.cos(a) * r, cy + Math.sin(a) * r];
+    };
+    g.clearRect(0, 0, w, h);
+    g.strokeStyle = '#e0dcd1';
+    g.lineWidth = 1;
+    for (let ring = 1; ring <= 5; ring += 1) {
+      g.beginPath();
+      for (let i = 0; i <= N; i += 1) {
+        const [x, y] = pt(i % N, (R * ring) / 5);
+        if (i === 0) g.moveTo(x, y);
+        else g.lineTo(x, y);
+      }
+      g.stroke();
+    }
+    g.strokeStyle = '#cfc9bb';
+    for (let i = 0; i < N; i += 1) {
+      const [x, y] = pt(i, R);
+      g.beginPath();
+      g.moveTo(cx, cy);
+      g.lineTo(x, y);
+      g.stroke();
+    }
+    g.beginPath();
+    for (let i = 0; i <= N; i += 1) {
+      const [x, y] = pt(i % N, (R * items[i % N].v) / 5);
+      if (i === 0) g.moveTo(x, y);
+      else g.lineTo(x, y);
+    }
+    g.closePath();
+    g.fillStyle = 'rgba(212,85,43,.16)';
+    g.fill();
+    g.strokeStyle = '#d4552b';
+    g.lineWidth = 2;
+    g.stroke();
+    g.fillStyle = '#4a4842';
+    g.font = '11px system-ui, "Microsoft YaHei", sans-serif';
+    g.textBaseline = 'middle';
+    // 按显示宽度裁（CJK 记 2 格），别把 "XGBoost 与特征工程" 切成半截
+    const clip = (s, max) => {
+      let wd = 0;
+      let out = '';
+      for (const ch of String(s)) {
+        const c = ch.charCodeAt(0) > 0x2e80 ? 2 : 1;
+        if (wd + c > max) {
+          out += '…';
+          break;
+        }
+        wd += c;
+        out += ch;
+      }
+      return out;
+    };
+    for (let i = 0; i < N; i += 1) {
+      const [x, y] = pt(i, R + 16);
+      g.textAlign = Math.abs(x - cx) < 8 ? 'center' : x > cx ? 'left' : 'right';
+      g.fillText(clip(items[i].name, 18), x, y);
+    }
+  }
+
   async function initSection() {
     const section = document.body.dataset.section || '';
     navOn('/' + section);
@@ -390,6 +517,10 @@
         host.innerHTML = `<div class="pgrid">${list.map(workHTML).join('')}</div>`;
       } else if (natural === 'rows') {
         host.innerHTML = list.map(mediaHTML).join('');
+      } else if (natural === 'shelf') {
+        host.innerHTML = `<div class="shelf">${list.map(shelfHTML).join('')}</div>`;
+      } else if (natural === 'log') {
+        host.innerHTML = `<div class="loglist">${list.map(logHTML).join('')}</div>`;
       } else if (natural === 'groups') {
         const groups = new Map();
         list.forEach((p) => {
@@ -397,15 +528,19 @@
           if (!groups.has(k)) groups.set(k, []);
           groups.get(k).push(p);
         });
-        host.innerHTML = [...groups]
-          .map(
-            ([k, arr]) =>
-              `<section class="sgroup" data-rb="reveal" data-rb-delay="0">
+        const rad = radarData(list);
+        host.innerHTML =
+          radarHTML(rad) +
+          [...groups]
+            .map(
+              ([k, arr]) =>
+                `<section class="sgroup" data-rb="reveal" data-rb-delay="0">
                  <h2 class="sgroup__k">${esc(k)}<span>${arr.length}</span></h2>
                  <div class="sgroup__items">${arr.map(skillHTML).join('')}</div>
                </section>`
-          )
-          .join('');
+            )
+            .join('');
+        paintRadars(host, rad);
       } else {
         host.innerHTML = `<div class="qgrid">${list.map(itemHTML).join('')}</div>`;
       }
@@ -535,9 +670,16 @@
       return;
     }
     let post = null;
+    let prev = null;
+    let next = null;
     try {
       const r = await fetch('/api/post?id=' + encodeURIComponent(id));
-      if (r.ok) post = (await r.json()).post;
+      if (r.ok) {
+        const d = await r.json();
+        post = d.post;
+        prev = d.prev;
+        next = d.next;
+      }
     } catch {
       post = null;
     }
@@ -563,7 +705,21 @@
             : ''
         }
       </header>
+      ${coverOf(post) ? `<figure class="post-cover"><img src="${esc(coverOf(post))}" alt="" loading="lazy"></figure>` : ''}
       <article class="prose">${proseHTML(post.body)}</article>
+      ${
+        prev || next
+          ? `<nav class="postnav">${
+              prev
+                ? `<a class="postnav__i" href="/p/${esc(prev.id)}"><span>上一篇</span><b>${esc(prev.title)}</b></a>`
+                : '<span></span>'
+            }${
+              next
+                ? `<a class="postnav__i postnav__i--next" href="/p/${esc(next.id)}"><span>下一篇</span><b>${esc(next.title)}</b></a>`
+                : '<span></span>'
+            }</nav>`
+          : ''
+      }
       <p class="back"><a class="btn" href="/${esc(post.section)}">← 回到${esc(short)}</a> <a class="btn" href="/">首页</a></p>`;
     navOn('/' + post.section);
     rendered();
