@@ -447,7 +447,26 @@ async function getPost(env, url) {
       /* extra 不是合法 JSON 就原样带出去，前端能容错 */
     }
   }
-  return json({ post });
+
+  // 同板块的上一篇 / 下一篇：按 COALESCE(posted_at, created_at) 与 id 双排序，同一天多条也稳
+  const visSql = includeLink ? "visibility IN ('public','link')" : "visibility = 'public'";
+  const at = 'COALESCE(posted_at, created_at)';
+  const anchor = post.posted_at || post.created_at;
+  const prev = await env.DB.prepare(
+    `SELECT id, title FROM posts
+      WHERE section = ? AND ${visSql} AND (${at} < ? OR (${at} = ? AND id < ?))
+      ORDER BY ${at} DESC, id DESC LIMIT 1`
+  )
+    .bind(post.section, anchor, anchor, post.id)
+    .first();
+  const next = await env.DB.prepare(
+    `SELECT id, title FROM posts
+      WHERE section = ? AND ${visSql} AND (${at} > ? OR (${at} = ? AND id > ?))
+      ORDER BY ${at} ASC, id ASC LIMIT 1`
+  )
+    .bind(post.section, anchor, anchor, post.id)
+    .first();
+  return json({ post, prev: prev || null, next: next || null });
 }
 
 /* ---------------- 管理写 ---------------- */
@@ -474,7 +493,7 @@ async function adminApi(request, env, url) {
     const pid = url.searchParams.get('pid') || '';
     const kind = url.searchParams.get('kind') || 'web';
     if (!/^[a-z0-9]{6,32}$/.test(pid)) return json({ error: 'bad pid' }, { status: 400 });
-    if (!['thumb', 'web', 'ticket'].includes(kind)) return json({ error: 'bad kind' }, { status: 400 });
+    if (!['thumb', 'web', 'ticket', 'cover'].includes(kind)) return json({ error: 'bad kind' }, { status: 400 });
     const body = await request.arrayBuffer();
     if (!body.byteLength) return json({ error: 'empty body' }, { status: 400 });
     if (body.byteLength > 12 * 1024 * 1024) return json({ error: 'too large' }, { status: 413 });
@@ -696,6 +715,9 @@ async function adminApi(request, env, url) {
   if (method === 'POST' && route === 'post-delete') {
     const { id } = await request.json();
     if (!id) return json({ error: 'id required' }, { status: 400 });
+    // 连封面图一起清掉，免得 blobs 表里留下孤儿分片
+    const before = await env.DB.prepare('SELECT cover_key FROM posts WHERE id = ?').bind(id).first();
+    if (before && before.cover_key) await blobDelete(env, [before.cover_key]);
     await env.DB.prepare('DELETE FROM posts WHERE id = ?').bind(id).run();
     return json({ ok: true });
   }
