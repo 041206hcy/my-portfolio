@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>照片地图 · 黄翀与</title>
+<meta name="description" content="全屏照片地图：所有带坐标的照片落在地图上，左侧按地点索引，点一下镜头飞过去。">
+<meta name="author" content="黄翀与">
+<link rel="canonical" href="https://shackle0412.vip/travel/map">
+<meta property="og:type" content="website">
+<meta property="og:title" content="照片地图 · 黄翀与">
+<meta property="og:description" content="所有带坐标的照片落在地图上。">
+<meta property="og:url" content="https://shackle0412.vip/travel/map">
+<meta property="og:image" content="https://shackle0412.vip/assets/og-cover.jpg">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/b.css">
+<link rel="stylesheet" href="/vendor/leaflet.css">
+<link rel="stylesheet" href="/vendor/MarkerCluster.css">
+<link rel="stylesheet" href="/vendor/MarkerCluster.Default.css">
+<link rel="stylesheet" href="/reactbits.css">
+</head>
+<body data-page="travel-map">
+
+<header class="nav" id="top">
+  <div class="wrap nav__in">
+    <a class="nav__brand" href="/">黄翀与</a>
+    <nav class="nav__links" aria-label="主导航">
+      <a href="/life">生活</a>
+      <a href="/learn">学习</a>
+      <a href="/work">作品</a>
+      <a href="/media">书影音</a>
+      <a href="/skill">技能</a>
+      <a href="/travel" aria-current="page">旅行</a>
+      <a href="/about">关于</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap" id="main">
+
+  <header class="page-head">
+    <p class="label">TRAVEL · 地图</p>
+    <h1 class="page-title">照片落在哪儿</h1>
+    <p class="page-sub">只有标过坐标的照片会出现在这里；按旅程筛可以只看其中一趟。</p>
+  </header>
+
+  <p class="back"><a href="/travel">← 回旅行总览</a></p>
+
+  <nav class="filters" id="filters" aria-label="按旅程筛选"></nav>
+
+  <div class="map-layout">
+    <aside class="place-index" id="place-index"></aside>
+    <div class="map-box map-box--tall"><div class="map-canvas" id="map-canvas"></div></div>
+  </div>
+
+</main>
+
+<footer class="colophon">
+  <span>© 2026 黄翀与 · <a href="https://shackle0412.vip/">shackle0412.vip</a></span>
+  <span><a href="/sitemap.xml">Sitemap</a> · <a href="/admin">管理</a></span>
+</footer>
+
+<script src="/vendor/leaflet.js"></script>
+<script src="/vendor/leaflet.markercluster.js"></script>
+<script src="/reactbits.js"></script>
+<script src="/travel.js"></script>
+</body>
+</html>
