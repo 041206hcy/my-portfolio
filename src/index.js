@@ -47,6 +47,11 @@ export default {
     }
 
     try {
+      // 云上 D1 第一次被数据处理请求碰到时，自动补齐表结构（全幂等）。
+      // 加这一层是因为：wrangler 的 OAuth 令牌会过期，手工跑 schema.sql 经常卡在网络上；
+      // 让 Worker 自己补表，换库/换账号时也不用再想起这件事。
+      if (path.startsWith('/api/') || path.startsWith('/img/')) await ensureSchema(env);
+
       if (path.startsWith('/img/')) return await serveImage(request, env, path.slice('/img/'.length));
       if (path === '/api/site') return await siteData(env);
       if (path === '/api/photos') return await listPhotos(env, url);
@@ -74,6 +79,43 @@ export default {
     }
   },
 };
+
+/* ---------------- 自动建表（幂等） ----------------
+   与 schema.sql 一致；schema.sql 是给人的完整参考（带注释），这里是给 D1 执行的最小副本。
+   新加表 / 新加索引时，两处都要补。每个 isolate 只跑一次，失败会重置以便下次重试。
+*/
+const SCHEMA_SQL = [
+  `CREATE TABLE IF NOT EXISTS trips (id TEXT PRIMARY KEY, title TEXT NOT NULL, subtitle TEXT, summary TEXT, cover_id TEXT, start_date TEXT, end_date TEXT, visibility TEXT NOT NULL DEFAULT 'public', created_at TEXT NOT NULL DEFAULT (datetime('now')), updated_at TEXT)`,
+  `CREATE TABLE IF NOT EXISTS photos (id TEXT PRIMARY KEY, trip_id TEXT, width INTEGER, height INTEGER, bytes INTEGER, shot_at TEXT, lat REAL, lng REAL, place TEXT, caption TEXT, visibility TEXT NOT NULL DEFAULT 'public', key_thumb TEXT NOT NULL, key_web TEXT NOT NULL, sort INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL DEFAULT (datetime('now')))`,
+  `CREATE INDEX IF NOT EXISTS idx_photos_trip ON photos(trip_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_photos_shot ON photos(shot_at)`,
+  `CREATE INDEX IF NOT EXISTS idx_photos_vis ON photos(visibility)`,
+  `CREATE INDEX IF NOT EXISTS idx_photos_unpinned ON photos(lat) WHERE lat IS NULL`,
+  `CREATE TABLE IF NOT EXISTS tickets (id TEXT PRIMARY KEY, trip_id TEXT NOT NULL, kind TEXT NOT NULL, code TEXT, from_name TEXT, to_name TEXT, from_lat REAL, from_lng REAL, to_lat REAL, to_lng REAL, depart_at TEXT, arrive_at TEXT, seat TEXT, passenger TEXT, key_image TEXT, raw_json TEXT, visibility TEXT NOT NULL DEFAULT 'public', created_at TEXT NOT NULL DEFAULT (datetime('now')))`,
+  `CREATE INDEX IF NOT EXISTS idx_tickets_trip ON tickets(trip_id)`,
+  `CREATE TABLE IF NOT EXISTS segments (id TEXT PRIMARY KEY, trip_id TEXT NOT NULL, ticket_id TEXT, mode TEXT, geojson TEXT NOT NULL, source TEXT)`,
+  `CREATE INDEX IF NOT EXISTS idx_segments_trip ON segments(trip_id)`,
+  `CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)`,
+  `CREATE TABLE IF NOT EXISTS blobs (key TEXT NOT NULL, part INTEGER NOT NULL, type TEXT, etag TEXT, bytes INTEGER, data BLOB NOT NULL, updated_at TEXT, PRIMARY KEY (key, part))`,
+  `CREATE TABLE IF NOT EXISTS posts (id TEXT PRIMARY KEY, section TEXT NOT NULL, title TEXT NOT NULL, slug TEXT, excerpt TEXT, body TEXT NOT NULL DEFAULT '', tags TEXT, cover_key TEXT, posted_at TEXT, visibility TEXT NOT NULL DEFAULT 'public', extra TEXT, sort INTEGER DEFAULT 0, created_at TEXT, updated_at TEXT)`,
+  `CREATE INDEX IF NOT EXISTS idx_posts_section ON posts(section, posted_at DESC)`,
+  `CREATE INDEX IF NOT EXISTS idx_posts_posted ON posts(posted_at DESC)`,
+  `CREATE INDEX IF NOT EXISTS idx_posts_vis ON posts(visibility)`,
+];
+
+let schemaReady = null;
+async function ensureSchema(env) {
+  if (!env || !env.DB) return;
+  if (!schemaReady) {
+    schemaReady = (async () => {
+      for (const sql of SCHEMA_SQL) await env.DB.prepare(sql).run();
+    })().catch((err) => {
+      schemaReady = null;
+      throw err;
+    });
+  }
+  return schemaReady;
+}
 
 /* ---------------- 管理接口的两道锁 ----------------
    1) ADMIN_TOKEN_SHA256：管理口令的 SHA-256（十六进制）。口令本身永远不进仓库，
