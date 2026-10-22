@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>搜索 · 黄翀与</title>
+<meta name="description" content="全站检索：按关键词、板块、标签或年份，找黄翀与写过的记录与笔记。">
+<meta name="keywords" content="搜索,检索,标签,年表,黄翀与">
+<meta name="author" content="黄翀与">
+<link rel="canonical" href="https://shackle0412.vip/search">
+<meta property="og:type" content="website">
+<meta property="og:title" content="搜索 · 黄翀与">
+<meta property="og:description" content="全站检索：按关键词、板块、标签或年份，找黄翀与写过的记录与笔记。">
+<meta property="og:url" content="https://shackle0412.vip/search">
+<meta property="og:image" content="https://shackle0412.vip/assets/og-cover.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/b.css">
+<link rel="stylesheet" href="/reactbits.css">
+</head>
+<body data-page="search">
+
+<header class="nav" id="top">
+  <div class="wrap nav__in">
+    <a class="nav__brand" href="/">黄翀与</a>
+    <nav class="nav__links" aria-label="主导航">
+      <a href="/life">生活</a>
+      <a href="/learn">学习</a>
+      <a href="/work">作品</a>
+      <a href="/media">书影音</a>
+      <a href="/skill">技能</a>
+      <a href="/travel">旅行</a>
+      <a href="/search">搜索</a>
+      <a href="/about">关于</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap" id="main">
+
+  <section class="page-head">
+    <p class="label">Search · 全站检索</p>
+    <h1>搜索</h1>
+    <p>标题、摘要、标签都在这里；按板块、标签或年份收窄。</p>
+  </section>
+
+  <form class="search" id="search" role="search">
+    <input type="search" id="q" placeholder="在这一块里搜……" aria-label="在这一块里搜索">
+    <button class="btn btn--small" type="submit">搜索</button>
+    <span class="label count" id="count"></span>
+    <div class="suggest" id="suggest" hidden></div>
+  </form>
+
+  <div class="toolbar">
+    <nav class="filters" id="sc-sections" aria-label="板块筛选"></nav>
+    <div class="viewtoggle" id="viewtoggle" role="group" aria-label="视图切换"></div>
+  </div>
+
+  <div class="tagcloud" id="tagcloud" aria-label="标签云"></div>
+
+  <div class="yearbar" id="yearbar" aria-label="按年份筛选" hidden></div>
+
+  <section class="plist" id="list"></section>
+
+  <footer class="colophon">
+    <span>© 2026 黄翀与 · <a href="https://shackle0412.vip/">shackle0412.vip</a></span>
+    <span><a href="/sitemap.xml">Sitemap</a> · <a href="/admin">管理</a></span>
+  </footer>
+</main>
+
+<script src="/reactbits.js"></script>
+<script src="/content.js"></script>
+</body>
+</html>
