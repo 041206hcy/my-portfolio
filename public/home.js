@@ -259,9 +259,9 @@
       : '';
     const [a, b, c] = pick;
     plates.innerHTML =
-      `<figure class="plate plate--main"><img src="${esc(imgSrc(a.key_thumb))}" alt="">${chip(a)}</figure>` +
-      (b ? `<figure class="plate plate--sub"><img src="${esc(imgSrc(b.key_thumb))}" alt="" loading="lazy"></figure>` : '') +
-      (c ? `<figure class="plate plate--stamp"><img src="${esc(imgSrc(c.key_thumb))}" alt="" loading="lazy"></figure>` : '');
+      `<figure class="plate plate--main" data-rb="glare" data-rb-opacity="0.35"><img src="${esc(imgSrc(a.key_thumb))}" alt="">${chip(a)}</figure>` +
+      (b ? `<figure class="plate plate--sub" data-rb="glare" data-rb-opacity="0.3"><img src="${esc(imgSrc(b.key_thumb))}" alt="" loading="lazy"></figure>` : '') +
+      (c ? `<figure class="plate plate--stamp" data-rb="glare" data-rb-opacity="0.3"><img src="${esc(imgSrc(c.key_thumb))}" alt="" loading="lazy"></figure>` : '');
   };
 
   /* ---------------- 胶片条 ---------------- */
@@ -484,9 +484,9 @@
 
     // stats.pinned 是「已定位的照片数」，不是地点数 —— 地点数由地图那行去算
     $('stats').innerHTML = [
-      `<b>${stats.photos || 0}</b> 张照片`,
-      `<b>${stats.pinned || 0}</b> 张有坐标`,
-      `<b>${stats.trips || 0}</b> 次旅程`,
+      `<b data-rb="countup">${stats.photos || 0}</b> 张照片`,
+      `<b data-rb="countup">${stats.pinned || 0}</b> 张有坐标`,
+      `<b data-rb="countup">${stats.trips || 0}</b> 次旅程`,
     ].join('<span class="stat-dot">·</span>');
 
     const tripCountEl = $('trip-count');
@@ -509,5 +509,7 @@
     renderPlaces(photos);
     renderMethod(copy, photos, stats);
     drawWall(photos);
+    // 交给 reactbits.js：计数、逐字浮现、掠过光都在这之后挂载
+    document.dispatchEvent(new CustomEvent('site:rendered'));
   })();
 })();
