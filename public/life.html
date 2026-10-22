@@ -30,6 +30,7 @@
       <a href="/media">书影音</a>
       <a href="/skill">技能</a>
       <a href="/travel">旅行</a>
+      <a href="/search">搜索</a>
       <a href="/about">关于</a>
     </nav>
   </div>
@@ -43,12 +44,18 @@
     <p>吃了什么、买了什么、今天干了什么。短句、照片、流水账，都放这里。</p>
   </section>
 
-  <nav class="filters" id="filters" aria-label="标签筛选"></nav>
+    <div class="toolbar">
+    <nav class="filters" id="filters" aria-label="标签筛选"></nav>
+    <div class="viewtoggle" id="viewtoggle" role="group" aria-label="视图切换"></div>
+  </div>
+
+  <div class="yearbar" id="yearbar" aria-label="按年份筛选" hidden></div>
 
   <form class="search" id="search" role="search">
     <input type="search" id="q" placeholder="在这一块里搜……" aria-label="在这一块里搜索">
     <button class="btn btn--small" type="submit">搜索</button>
     <span class="label count" id="count"></span>
+    <div class="suggest" id="suggest" hidden></div>
   </form>
 
   <section class="plist" id="list"></section>
