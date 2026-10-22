@@ -73,7 +73,7 @@
       }))
       .concat([
         {
-          href: '/journeys',
+          href: '/travel',
           name: '旅行',
           desc: '照片按地点落在地图上，点开能看当天走过的路线。',
           meta: stats.photos ? `${stats.trips} 趟 · ${stats.photos} 张照片` : '还没有照片',
@@ -120,13 +120,13 @@
       ? `<div class="strip">${photos
           .map(
             (p) =>
-              `<a href="/journeys" data-rb="tilt" data-rb-tilt="2.2" title="${esc(p.place || p.caption || '')}"><img src="/img/${esc(p.key_thumb || '')}" alt="${esc(
+              `<a href="/travel" data-rb="tilt" data-rb-tilt="2.2" title="${esc(p.place || p.caption || '')}"><img src="/img/${esc(p.key_thumb || '')}" alt="${esc(
                 p.place || p.caption || '照片'
               )}" loading="lazy"></a>`
           )
           .join('')}</div>
-        <div class="acts"><a class="btn" href="/journeys">看旅程</a><a class="btn" href="/map">打开地图</a><a class="btn" href="/photos">照片墙</a></div>`
-      : `<div class="empty">旅行这块还空着。传上第一批照片后，这里会出现最新四张；地图、轨迹与票据在 <a href="/journeys">旅行</a> 里。</div>`;
+        <div class="acts"><a class="btn" href="/travel">看旅程</a><a class="btn" href="/travel/map">打开地图</a><a class="btn" href="/travel/photos">照片墙</a></div>`
+      : `<div class="empty">旅行这块还空着。传上第一批照片后，这里会出现最新四张；地图、轨迹与票据在 <a href="/travel">旅行</a> 里。</div>`;
 
     rendered();
   }
