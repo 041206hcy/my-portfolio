@@ -32,6 +32,16 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const path = url.pathname;
+
+    // http → https 强制跳转。
+    // 域名由 Cloudflare 代理，TLS 在边缘终止，所以原始协议看 x-forwarded-proto；
+    // 仪表板里的 Always Use HTTPS 需要有 zone 权限的令牌才能开，改在 Worker 里做等价的事。
+    if ((request.headers.get('x-forwarded-proto') || '').toLowerCase() === 'http') {
+      const secure = new URL(request.url);
+      secure.protocol = 'https:';
+      return Response.redirect(secure.toString(), 301);
+    }
+
     try {
       if (path.startsWith('/img/')) return await serveImage(request, env, path.slice('/img/'.length));
       if (path === '/api/site') return await siteData(env);
