@@ -40,6 +40,7 @@ body::after { z-index: 1; }
 .c-7 { grid-column: span 7; }
 .c-8 { grid-column: span 8; }
 .c-12 { grid-column: 1 / -1; }
+.c-full { grid-column: 1 / -1; min-width: 0; }
 
 /* ---------- 段落（band） ---------- */
 .band { padding: var(--space-16) 0; }
