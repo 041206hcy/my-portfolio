@@ -111,6 +111,8 @@ img{max-width:100%;height:auto;display:block}
 .tl__b a{color:var(--ink);border-bottom:1px solid var(--line-2);text-decoration:none}
 .tl__b a:hover{color:var(--accent);border-color:var(--accent)}
 .chips{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0 0}
+.about-side{min-width:0}
+.facts dd{overflow-wrap:anywhere}
 .hint{margin:18px 0 0;font-size:13.5px;color:var(--muted)}
 .search{margin:18px 0 0;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .search input{flex:1;min-width:220px;padding:11px 14px;border:1px solid var(--line-2);border-radius:var(--r);
@@ -275,4 +277,82 @@ img{max-width:100%;height:auto;display:block}
   .pitem{grid-template-columns:1fr;gap:6px}
   .cell__t{font-size:21px}
   .prose{font-size:16px}
+}
+
+/* ---------- 小节头（各板块与旅行页共用） ---------- */
+.page-title{margin:18px 0 0;font-size:clamp(40px,5.4vw,64px);line-height:1.02;letter-spacing:-.03em;font-weight:800}
+.page-sub{margin:16px 0 0;font-size:16px;color:var(--ink-2);max-width:36em}
+.head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:22px}
+.head__title{margin:0;font-size:clamp(22px,2.4vw,30px);font-weight:800;letter-spacing:-.02em}
+.head__meta{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.head__link{margin-left:auto;font-size:13px;text-decoration:none;border-bottom:1px solid var(--line-2)}
+.head__link:hover{border-color:var(--ink)}
+.band--wide{border-top:0;padding-top:8px;margin-top:52px}
+.album__more{margin:26px 0 0;text-align:center}
+
+/* ---------- 旅行：总览 / 旅程 / 相册 / 地图 ---------- */
+.jlist{margin-top:6px}
+.jcard{display:grid;grid-template-columns:132px 1fr auto;gap:18px;align-items:center;padding:16px 4px;
+  border-top:1px solid var(--line);text-decoration:none;color:inherit;
+  transition:background .22s ease,padding-left .22s ease}
+.jcard:hover{background:var(--panel);padding-left:12px}
+.jcard__cover{width:132px;aspect-ratio:4/3;object-fit:cover;border:1px solid var(--line);border-radius:var(--r);background:var(--panel)}
+.jcard__cover--blank{display:grid;place-items:center;font-size:11px;letter-spacing:.18em;color:var(--muted);
+  background:repeating-linear-gradient(45deg,var(--line) 0 6px,transparent 6px 12px)}
+.jcard__title{font-size:19px;font-weight:700;letter-spacing:-.01em}
+.jcard__sub{margin-top:5px;font-size:13.5px;color:var(--ink-2)}
+.jcard__meta{font-family:var(--mono);font-size:11.5px;color:var(--muted);text-align:right;line-height:1.7}
+.tstats{display:grid;grid-template-columns:repeat(4,1fr);margin-top:44px;border-top:1px solid var(--ink);border-bottom:1px solid var(--line)}
+.tstat{padding:15px 2px;border-right:1px solid var(--line)}
+.tstat:last-child{border-right:0}
+.tstat dt{font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase}
+.tstat dd{margin:8px 0 0;font-size:30px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.tday{margin-top:30px}
+.tday__head{display:flex;align-items:baseline;gap:12px;border-bottom:1px solid var(--line);padding-bottom:7px}
+.tday__date{font-weight:700}
+.tday__meta{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.flow{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 0}
+.flow__item{margin:0;min-width:150px;max-width:min(100%,780px);overflow:hidden;border:1px solid var(--line);background:var(--panel);border-radius:var(--r)}
+.flow__item img{display:block;width:100%;height:auto;cursor:zoom-in}
+.flow__item figcaption{padding:7px 9px 8px;font-size:12px;color:var(--muted);border-top:1px solid var(--line)}
+.map-layout{display:grid;grid-template-columns:200px 1fr;gap:18px;margin-top:22px;align-items:start}
+.map-box{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--panel)}
+.map-canvas{height:420px}
+.map-box--tall .map-canvas{height:min(74vh,660px)}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.place-index{display:flex;flex-direction:column;border-top:1px solid var(--ink)}
+.place-index .label{margin:14px 0 8px}
+.place-row{display:flex;justify-content:space-between;gap:12px;padding:11px 2px;border:0;border-bottom:1px solid var(--line);
+  background:none;font:inherit;font-size:13.5px;color:inherit;text-align:left;cursor:pointer;transition:background .2s ease,padding-left .2s ease}
+.place-row:hover{background:var(--panel);padding-left:10px}
+.place-row b{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:600}
+.strip__item{margin:0;aspect-ratio:4/3;overflow:hidden;border:1px solid var(--line);border-radius:var(--r);background:var(--panel)}
+.strip__item img{width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.22,1,.36,1)}
+
+/* 灯箱（旅行页）：注意 hidden 必须压住 display:grid */
+.lightbox{position:fixed;inset:0;z-index:80;background:rgba(20,19,15,.94);display:grid;grid-template-rows:1fr auto;padding:3vh 3vw}
+.lightbox[hidden]{display:none}
+.lightbox__stage{display:grid;place-items:center;min-height:0}
+.lightbox__stage img{max-width:100%;max-height:82vh;object-fit:contain;border-radius:var(--r)}
+.lightbox__bar{display:flex;align-items:center;gap:12px;padding-top:14px;color:#f5f3ee}
+.lightbox__cap{flex:1;font-size:13.5px;color:rgba(245,243,238,.86)}
+.lightbox__btn{padding:7px 13px;border:1px solid rgba(245,243,238,.4);border-radius:var(--r);
+  background:none;color:#f5f3ee;font:inherit;font-size:13px;cursor:pointer}
+.lightbox__btn:hover{background:rgba(245,243,238,.12);border-color:#f5f3ee}
+
+@media (max-width:900px){
+  .map-layout{grid-template-columns:1fr}
+  .place-index{order:2}
+}
+@media (max-width:640px){
+  .jcard{grid-template-columns:92px 1fr;gap:14px}
+  .jcard__meta{grid-column:2;text-align:left;margin-top:4px}
+  .tstats{grid-template-columns:repeat(2,1fr)}
+  .tstat:nth-child(2n){border-right:0}
+  .map-canvas{height:300px}
+  .flow{gap:8px}
+  .flow__item{min-width:118px}
+  .lightbox{padding:2vh 3vw}
+  .lightbox__stage img{max-height:72vh}
+  .lightbox__cap{font-size:12px}
 }
