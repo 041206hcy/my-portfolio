@@ -12,7 +12,10 @@
   "assets": {
     "directory": "./public",
     "binding": "ASSETS",
-    "not_found_handling": "404-page"
+    "not_found_handling": "404-page",
+    // 让 Worker 先拿到请求：默认情况下静态资源由边缘直接返回、Worker 根本不会被调用，
+    // 于是 src/index.js 里的 http→https 强制跳转对页面不生效（/api/* 仍会走 Worker）。
+    "run_worker_first": true
   },
   // 结构化数据：旅程 / 照片 / 票据 / 轨迹段
   // database_id 先放占位 UUID（本地开发用不到真实 id）；等你在 Cloudflare 建好 D1 后换成真实值
