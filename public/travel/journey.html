@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>一趟旅程 · 黄翀与</title>
+<meta name="description" content="单次旅程：按天排开的照片、当天走过的路线，以及这趟的天数、照片数与地点数。">
+<meta name="author" content="黄翀与">
+<link rel="canonical" href="https://shackle0412.vip/travel/journey">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一趟旅程 · 黄翀与">
+<meta property="og:description" content="按天排开的照片与走过的路线。">
+<meta property="og:url" content="https://shackle0412.vip/travel/journey">
+<meta property="og:image" content="https://shackle0412.vip/assets/og-cover.jpg">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/b.css">
+<link rel="stylesheet" href="/vendor/leaflet.css">
+<link rel="stylesheet" href="/vendor/MarkerCluster.css">
+<link rel="stylesheet" href="/vendor/MarkerCluster.Default.css">
+<link rel="stylesheet" href="/reactbits.css">
+</head>
+<body data-page="travel-journey">
+
+<header class="nav" id="top">
+  <div class="wrap nav__in">
+    <a class="nav__brand" href="/">黄翀与</a>
+    <nav class="nav__links" aria-label="主导航">
+      <a href="/life">生活</a>
+      <a href="/learn">学习</a>
+      <a href="/work">作品</a>
+      <a href="/media">书影音</a>
+      <a href="/skill">技能</a>
+      <a href="/travel" aria-current="page">旅行</a>
+      <a href="/about">关于</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap" id="main">
+
+  <p class="back"><a href="/travel">← 所有旅程</a></p>
+
+  <header class="page-head">
+    <p class="label" id="t-kicker">TRAVEL · 旅程</p>
+    <h1 class="page-title" id="t-title">旅程</h1>
+    <p class="page-sub" id="t-dates"></p>
+    <p class="page-sub" id="t-sub"></p>
+  </header>
+
+  <div class="tstats" id="t-stats"></div>
+
+  <div class="band">
+    <h2 class="head__title">走过的路线</h2>
+    <span class="band__note">按拍摄时间串起来的点</span>
+  </div>
+  <div class="map-box"><div class="map-canvas" id="t-map"></div></div>
+  <div class="legend" id="t-legend"></div>
+
+  <div class="band">
+    <h2 class="head__title">按天</h2>
+    <span class="band__note">同一天的照片排在一起</span>
+  </div>
+  <div id="t-days"></div>
+
+</main>
+
+<footer class="colophon">
+  <span>© 2026 黄翀与 · <a href="https://shackle0412.vip/">shackle0412.vip</a></span>
+  <span><a href="/sitemap.xml">Sitemap</a> · <a href="/admin">管理</a></span>
+</footer>
+
+<div class="lightbox" id="lightbox" hidden>
+  <div class="lightbox__stage"><img id="box-img" alt=""></div>
+  <div class="lightbox__bar">
+    <button class="lightbox__btn" id="box-prev" type="button">←</button>
+    <span class="lightbox__cap" id="box-cap"></span>
+    <button class="lightbox__btn" id="box-next" type="button">→</button>
+    <button class="lightbox__btn" id="box-close" type="button">关闭</button>
+  </div>
+</div>
+
+<script src="/vendor/leaflet.js"></script>
+<script src="/vendor/leaflet.markercluster.js"></script>
+<script src="/reactbits.js"></script>
+<script src="/travel.js"></script>
+</body>
+</html>
