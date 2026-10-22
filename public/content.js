@@ -82,7 +82,7 @@
       ]);
     $('sections').innerHTML = cards
       .map(
-        (c, i) => `<a class="cell" href="${esc(c.href)}" data-rb="glare" data-rb-opacity="0.22">
+        (c, i) => `<a class="cell${i === cards.length - 1 ? ' cell--wide' : ''}" href="${esc(c.href)}" data-rb="glare" data-rb-opacity="0.22">
         <span class="cell__no">${String(i + 1).padStart(2, '0')}</span>
         <h3 class="cell__t">${esc(c.name)}</h3>
         <p class="cell__d">${esc(c.desc)}</p>
@@ -294,7 +294,11 @@
   }
 
   async function initPost() {
-    const id = new URLSearchParams(location.search).get('id') || '';
+    // id 可能来自 ?id=，也可能来自漂亮地址 /p/<id>（Worker 内部重写后地址栏仍是 /p/<id>）
+    const id =
+      new URLSearchParams(location.search).get('id') ||
+      (location.pathname.match(/^\/p\/([a-z0-9]{4,64})\/?$/) || [])[1] ||
+      '';
     const host = $('post');
     if (!id) {
       host.innerHTML = `<div class="empty">这条链接没带文章 id。<a href="/">回首页</a></div>`;
