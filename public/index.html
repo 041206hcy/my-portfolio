@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>黄翀与的旅程 · 照片地图</title>
-<meta name="description" content="走到哪儿拍到哪儿：按地点和时间铺开的旅行照片地图，分旅程整理，附机票火车票与轨迹。">
-<meta name="keywords" content="旅行照片,照片地图,旅程轨迹,黄翀与,航拍,地理信息">
+<title>黄翀与 · 个人主页</title>
+<meta name="description" content="地理信息科学在读。这里记录我的生活、学习笔记、做过的项目与看过的书影音，旅行的照片按地点落在地图上。">
+<meta name="keywords" content="黄翀与,个人主页,地理信息科学,学习笔记,生活记录,旅行照片,照片地图,机载LiDAR">
 <meta name="author" content="黄翀与">
 <!-- 正式域名：https://shackle0412.vip/ -->
 <!-- Google Search Console 站点所有权验证 -->
@@ -14,219 +14,88 @@
 <meta name="baidu-site-verification" content="codeva-jblB8MzwoU" />
 <link rel="canonical" href="https://shackle0412.vip/">
 <meta property="og:type" content="website">
-<meta property="og:title" content="黄翀与的旅程 · 照片地图">
-<meta property="og:description" content="按地点和时间铺开的旅行照片。">
+<meta property="og:title" content="黄翀与 · 个人主页">
+<meta property="og:description" content="生活记录、学习笔记、项目与书影音；旅行照片按地点落在地图上。">
 <meta property="og:url" content="https://shackle0412.vip/">
 <meta property="og:image" content="https://shackle0412.vip/assets/og-cover.jpg">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="layout.css">
+<link rel="stylesheet" href="b.css">
 <link rel="stylesheet" href="reactbits.css">
-<link rel="stylesheet" href="vendor/leaflet.css">
-<link rel="stylesheet" href="vendor/MarkerCluster.css">
-<link rel="stylesheet" href="vendor/MarkerCluster.Default.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "黄翀与",
+  "url": "https://shackle0412.vip/",
+  "jobTitle": "本科生",
+  "affiliation": { "@type": "CollegeOrUniversity", "name": "浙江农林大学 环境与资源学院" },
+  "knowsAbout": ["地理信息科学", "机载 LiDAR", "多光谱遥感", "森林蓄积量估测", "无人机实景三维"]
+}
+</script>
 </head>
-<body class="page--wide">
-
-<a class="skip" href="#main">跳到主内容</a>
+<body data-page="home">
 
 <header class="nav" id="top">
-  <a class="nav__brand" href="/">黄翀与的旅程</a>
-  <nav class="nav__links" aria-label="主导航">
-    <a href="/journeys">旅程</a>
-    <a href="/map">地图</a>
-    <a href="/photos">照片</a>
-    <a href="/notes">笔记</a>
-    <a href="/about">关于</a>
-  </nav>
+  <div class="wrap nav__in">
+    <a class="nav__brand" href="/">黄翀与</a>
+    <nav class="nav__links" aria-label="主导航">
+      <a href="/life">生活</a>
+      <a href="/learn">学习</a>
+      <a href="/work">作品</a>
+      <a href="/media">书影音</a>
+      <a href="/skill">技能</a>
+      <a href="/journeys">旅行</a>
+      <a href="/about">关于</a>
+    </nav>
+  </div>
 </header>
 
-<main id="main">
+<main class="wrap" id="main">
 
-  <!-- ================= 刊头：文字 1–6 列 / 相纸 8–12 列 ================= -->
-  <section class="masthead" id="masthead">
-    <div class="masthead__lede">
-      <p class="kicker">旅行手记 · 2019 — 2026</p>
-      <h1 class="masthead__name" data-rb="blurtext">黄翀与的旅程</h1>
-      <div class="masthead__rule"></div>
-      <p class="masthead__tag">走到哪儿，拍到哪儿</p>
-      <p class="masthead__desc">
-        去过的地方在这张图上连成片。照片从相册传上来，标好位置，
-        就在地图上亮起来；攒够一趟，就归成一次旅程。
-      </p>
-      <p class="masthead__stats" id="stats" role="status">正在读取…</p>
-      <div class="masthead__actions">
-        <a class="btn btn--primary" href="/map">看地图</a>
-        <a class="btn" href="/photos">翻照片</a>
+  <!-- 名片首屏：我是谁 → 一眼看板 → 板块入口 → 最近混流 → 旅行入口 -->
+  <section class="hero">
+    <div>
+      <p class="label" id="hero-kicker">个人主页 · 2026</p>
+      <h1 class="hero__name" data-rb="blurtext">黄翀与</h1>
+      <p class="hero__role">浙江农林大学 · 环境与资源学院 · 地理信息科学</p>
+      <p class="hero__lede" id="hero-lede">走到哪儿，拍到哪儿；把学到的东西写下来。生活记录、学习笔记、项目与照片，都放在这里。</p>
+      <div class="acts">
+        <a class="btn btn--key" id="hero-latest" href="#latest">读最新一篇</a>
+        <a class="btn" href="/about">关于我</a>
       </div>
     </div>
-    <div class="masthead__plates" id="plates" aria-hidden="true"></div>
-    <p class="masthead__meta" id="masthead-meta"></p>
+    <aside>
+      <div class="rail" id="rail"></div>
+      <div class="ph" id="portrait"><span>形象位 4:3</span></div>
+    </aside>
   </section>
 
-  <!-- ================= 编辑层：本期手记 + 边注（文字都能在后台改） ================= -->
-  <section class="lede-band" id="issue" aria-labelledby="issue-title">
-    <div class="lede-band__main">
-      <p class="kicker" id="issue-kicker">创刊号</p>
-      <h2 class="lede-band__title" id="issue-title">先说几句</h2>
-      <div class="lede-band__body" id="issue-note"></div>
-    </div>
-    <aside class="sidenotes" id="sidenotes" aria-label="边注"></aside>
-  </section>
+  <div class="band">
+    <span class="label">板块 Sections</span>
+    <span class="band__note" id="sections-note"></span>
+  </div>
+  <section class="grid" id="sections"></section>
 
-  <!-- ================= 编辑层：跨页图版（一张最横的主图 + 长说明） ================= -->
-  <figure class="spread" id="spread" hidden></figure>
+  <div class="band">
+    <span class="label">最近 Latest</span>
+    <span class="band__note">最新三条，混流</span>
+  </div>
+  <section class="feed" id="latest"></section>
 
-  <!-- ================= 目录条：本期的页目 ================= -->
-  <nav class="toc" aria-label="本期目录">
-    <a class="toc__cell" href="/journeys">
-      <span class="toc__no">01</span>
-      <span class="toc__name">旅程</span>
-      <span class="toc__desc">按时间排的每一趟</span>
-      <span class="toc__arrow" aria-hidden="true">→</span>
-    </a>
-    <a class="toc__cell" href="/map">
-      <span class="toc__no">02</span>
-      <span class="toc__name">地图</span>
-      <span class="toc__desc">都在哪些地方</span>
-      <span class="toc__arrow" aria-hidden="true">→</span>
-    </a>
-    <a class="toc__cell" href="/photos">
-      <span class="toc__no">03</span>
-      <span class="toc__name">照片</span>
-      <span class="toc__desc">整本相册</span>
-      <span class="toc__arrow" aria-hidden="true">→</span>
-    </a>
-    <a class="toc__cell" href="/notes">
-      <span class="toc__no">04</span>
-      <span class="toc__name">笔记</span>
-      <span class="toc__desc">路上写下的</span>
-      <span class="toc__arrow" aria-hidden="true">→</span>
-    </a>
-  </nav>
+  <div class="band">
+    <span class="label">旅行 Travel</span>
+    <span class="band__note" id="travel-note"></span>
+  </div>
+  <section id="travel"></section>
 
-  <!-- ================= 01 旅程：最近一次跨页 + 其余索引 ================= -->
-  <section class="band" id="trips">
-    <header class="head">
-      <p class="head__no">01</p>
-      <h2 class="head__title">旅程</h2>
-      <p class="head__sub">最近一次在最上面</p>
-      <span class="head__more" id="trip-count"></span>
-    </header>
-    <div class="years" id="trip-years" aria-label="按年份"></div>
-    <div id="feature-trip"></div>
-    <div class="trip-index" id="trip-index"></div>
-  </section>
-
-  <!-- ================= 02 地图：满版色块 ================= -->
-  <section class="band band--soft band--bleed" id="map">
-    <div class="band__inner">
-      <header class="head">
-        <p class="head__no">02</p>
-        <h2 class="head__title">地图</h2>
-        <p class="head__sub">点开图标看照片</p>
-        <span class="head__more" id="map-hint" role="status">正在加载地图…</span>
-      </header>
-      <div class="map-layout">
-        <aside class="place-index" id="place-index" aria-label="地点索引"></aside>
-        <div class="map" id="map-canvas"></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ================= 03 照片：胶片条 + 错版墙 ================= -->
-  <section class="band" id="wall">
-    <header class="head">
-      <p class="head__no">03</p>
-      <h2 class="head__title">照片</h2>
-      <p class="head__sub">新的排前面</p>
-      <span class="head__more" id="wall-count"></span>
-    </header>
-    <div class="strip" id="film-strip" aria-label="最近的照片"></div>
-    <div class="flow" id="photo-wall"></div>
-  </section>
-
-  <!-- ================= 04 笔记 ================= -->
-  <section class="band band--soft band--bleed" id="notes">
-    <div class="band__inner">
-      <header class="head">
-        <p class="head__no">04</p>
-        <h2 class="head__title">笔记</h2>
-        <p class="head__sub">路上写下的</p>
-        <span class="head__more">共 2 篇</span>
-      </header>
-      <ul class="note-list">
-        <li class="note-row">
-          <span class="note-row__date">2026-10-21</span>
-          <a class="note-row__link" href="notes/cloudflare-deploy">
-            <span class="note-row__title">把静态站搬到 Cloudflare，我踩了五个坑</span>
-            <span class="note-row__desc">Workers 与 Pages 的差别、构建目录、域名接入的完整过程。</span>
-          </a>
-        </li>
-        <li class="note-row">
-          <span class="note-row__date">2026-10-18</span>
-          <a class="note-row__link" href="notes/lidar-to-feature-matrix">
-            <span class="note-row__title">从点云到特征矩阵：一次外业的七个阶段</span>
-            <span class="note-row__desc">规划、控制、飞行、空三、匹配、点云、检核的判据。</span>
-          </a>
-        </li>
-      </ul>
-    </div>
-  </section>
-
-  <!-- ================= 说明层：方法卡（这一站怎么用，正文可编辑，数字自动算） ================= -->
-  <section class="band band--soft" id="method" aria-labelledby="method-title">
-    <div class="band__inner method-card">
-      <div class="method-card__main">
-        <p class="kicker">这一站怎么用</p>
-        <h2 class="head__title" id="method-title">方法</h2>
-        <div class="method-card__body" id="method-body"></div>
-      </div>
-      <aside class="method-card__aside" id="method-aside" aria-label="这一期的数字"></aside>
-    </div>
-  </section>
-
-  <!-- ================= 版权页：深色收束 ================= -->
-  <footer class="colophon band--bleed">
-    <div class="band__inner colophon__grid">
-      <div>
-        <p class="colophon__brand">黄翀与的旅程</p>
-        <p class="colophon__line">走到哪儿，拍到哪儿。照片与文字均为本人拍摄整理。</p>
-      </div>
-      <div>
-        <p class="colophon__head">本期</p>
-        <p class="colophon__line" id="colophon-stats">—</p>
-      </div>
-      <div>
-        <p class="colophon__head">栏目</p>
-        <p class="colophon__line">
-          <a href="/journeys">旅程</a> · <a href="/map">地图</a> ·
-          <a href="/photos">照片</a> · <a href="/about">关于</a>
-        </p>
-      </div>
-      <div>
-        <p class="colophon__head">站点</p>
-        <p class="colophon__line">
-          <a href="https://shackle0412.vip/">shackle0412.vip</a><br>
-          © <span id="year">2026</span> 黄翀与<br>
-          <a href="#top">回到顶部 ↑</a>
-        </p>
-      </div>
-    </div>
+  <footer class="colophon">
+    <span>© 2026 黄翀与 · <a href="https://shackle0412.vip/">shackle0412.vip</a></span>
+    <span><a href="/sitemap.xml">Sitemap</a> · <a href="/admin">管理</a></span>
   </footer>
-
 </main>
 
-<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="照片大图" hidden>
-  <button class="lightbox__close" type="button" id="lightbox-close" aria-label="关闭">×</button>
-  <img id="lightbox-img" alt="">
-  <p class="lightbox__cap" id="lightbox-cap"></p>
-</div>
-
-<script src="vendor/leaflet.js"></script>
-<script src="vendor/leaflet.markercluster.js"></script>
-<script src="app.js"></script>
-<script src="home.js"></script>
 <script src="reactbits.js"></script>
+<script src="content.js"></script>
 </body>
 </html>
