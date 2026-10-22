@@ -15,11 +15,14 @@
   align-items: baseline;
 }
 
+/* 初始态写在 CSS 里、JS 只喂参数（--rb-blur / --rb-dist）。
+   踩过的坑：把初始态写成行内样式后，.is-in 的选择器再高优先级也盖不住行内值，
+   标题会永远停在模糊态 —— 所以模糊量与位移量都走自定义属性。 */
 .rb-blurtext__piece {
   display: inline-block;
   opacity: 0;
-  filter: blur(10px);          /* 默认 blur=10 */
-  transform: translateY(-50px); /* 默认 direction='top', distance=50 */
+  filter: blur(var(--rb-blur, 10px));          /* 默认 blur=10 */
+  transform: translateY(var(--rb-dist, -50px)); /* 默认 direction='top', distance=50 */
   will-change: transform, filter, opacity;
   /* 默认 stepDuration=0.35s；缓动取原实现的 CSS_EASE */
   transition:
@@ -32,6 +35,14 @@
   opacity: 1;
   filter: blur(0);
   transform: none;
+}
+
+/* 空白片段不参与动画，立刻可见 */
+.rb-blurtext__piece--static {
+  opacity: 1;
+  filter: none;
+  transform: none;
+  transition: none;
 }
 
 /* ---------- GlareHover：掠过光（streak 变体） ---------- */
