@@ -708,17 +708,17 @@
       ${coverOf(post) ? `<figure class="post-cover"><img src="${esc(coverOf(post))}" alt="" loading="lazy"></figure>` : ''}
       <article class="prose">${proseHTML(post.body)}</article>
       ${
-        prev || next
-          ? `<nav class="postnav">${
-              prev
-                ? `<a class="postnav__i" href="/p/${esc(prev.id)}"><span>上一篇</span><b>${esc(prev.title)}</b></a>`
-                : '<span></span>'
-            }${
-              next
-                ? `<a class="postnav__i postnav__i--next" href="/p/${esc(next.id)}"><span>下一篇</span><b>${esc(next.title)}</b></a>`
-                : '<span></span>'
-            }</nav>`
-          : ''
+        (() => {
+          const pv = prev
+            ? `<a class="postnav__i" href="/p/${esc(prev.id)}"><span>上一篇</span><b>${esc(prev.title)}</b></a>`
+            : '';
+          const nx = next
+            ? `<a class="postnav__i postnav__i--next" href="/p/${esc(next.id)}"><span>下一篇</span><b>${esc(next.title)}</b></a>`
+            : '';
+          if (!pv && !nx) return '';
+          // 只有一边时要占满整行，否则会留一块空白
+          return `<nav class="postnav${pv && nx ? '' : ' postnav--one'}">${pv}${nx}</nav>`;
+        })()
       }
       <p class="back"><a class="btn" href="/${esc(post.section)}">← 回到${esc(short)}</a> <a class="btn" href="/">首页</a></p>`;
     navOn('/' + post.section);
