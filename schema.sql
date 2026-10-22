@@ -94,3 +94,27 @@ CREATE TABLE IF NOT EXISTS blobs (
   updated_at   TEXT,
   PRIMARY KEY (key, part)
 );
+
+-- 通用内容表：生活记录 / 学习笔记 / 作品 / 书影音 / 技能…… 全装在这一张表里，
+-- 板块只是 section 字段。加一个新板块不必改表结构。
+-- extra 放各板块自己的小字段（JSON）：书影音的类型/状态/评分、技能的熟练度……
+CREATE TABLE IF NOT EXISTS posts (
+  id           TEXT PRIMARY KEY,
+  section      TEXT NOT NULL,                  -- life | learn | work | media | skill
+  title        TEXT NOT NULL,
+  slug         TEXT,
+  excerpt      TEXT,                           -- 摘要，列表与分享卡用
+  body         TEXT NOT NULL DEFAULT '',       -- 正文，空行分段
+  tags         TEXT,                           -- 逗号分隔
+  cover_key    TEXT,                           -- 可选封面（D1 blobs 里的 key）
+  posted_at    TEXT,                           -- YYYY-MM-DD
+  visibility   TEXT NOT NULL DEFAULT 'public', -- public | link | private
+  extra        TEXT,                           -- JSON
+  sort         INTEGER DEFAULT 0,
+  created_at   TEXT,
+  updated_at   TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_posts_section ON posts(section, posted_at DESC);
+CREATE INDEX IF NOT EXISTS idx_posts_posted  ON posts(posted_at DESC);
+CREATE INDEX IF NOT EXISTS idx_posts_vis     ON posts(visibility);
