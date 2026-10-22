@@ -64,6 +64,9 @@ img{max-width:100%;height:auto;display:block}
 .cell{border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--panel);
       padding:26px 24px 28px;text-decoration:none;display:flex;flex-direction:column;gap:0}
 .cell:hover .cell__t{color:var(--accent)}
+/* 入口数不是 3 的整数倍时，最后一个占满整行，免得末尾留个空格子 */
+.cell--wide{grid-column:1 / -1}
+.cell--wide .cell__d{max-width:62ch}
 .cell__no{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.18em}
 .cell__t{font-size:24px;letter-spacing:-.02em;margin:13px 0 0;font-weight:700;transition:color .15s}
 .cell__d{margin:10px 0 0;font-size:13.5px;color:var(--ink-2);flex:1}
