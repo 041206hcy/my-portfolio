@@ -7,25 +7,25 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://shackle0412.vip/journeys.html</loc>
+    <loc>https://shackle0412.vip/journeys</loc>
     <lastmod>2026-10-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://shackle0412.vip/map.html</loc>
+    <loc>https://shackle0412.vip/map</loc>
     <lastmod>2026-10-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://shackle0412.vip/photos.html</loc>
+    <loc>https://shackle0412.vip/photos</loc>
     <lastmod>2026-10-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://shackle0412.vip/notes.html</loc>
+    <loc>https://shackle0412.vip/notes</loc>
     <lastmod>2026-10-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -37,13 +37,13 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://shackle0412.vip/notes/cloudflare-deploy.html</loc>
+    <loc>https://shackle0412.vip/notes/cloudflare-deploy</loc>
     <lastmod>2026-10-21</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://shackle0412.vip/notes/lidar-to-feature-matrix.html</loc>
+    <loc>https://shackle0412.vip/notes/lidar-to-feature-matrix</loc>
     <lastmod>2026-10-21</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.6</priority>
