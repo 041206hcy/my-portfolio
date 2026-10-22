@@ -18,6 +18,7 @@
     <a href="#pending">待标点</a>
     <a href="#manage">照片管理</a>
     <a href="#trips">旅程</a>
+    <a href="#posts">内容</a>
     <a href="#copy">文字</a>
   </nav>
 </header>
@@ -152,6 +153,46 @@
     </div>
   </section>
 
+  <section class="section" id="posts">
+    <h2 class="section__title">内容 <span class="badge" id="posts-count">0</span></h2>
+    <p class="section__text">
+      生活记录、学习笔记、作品、书影音、技能——<b>全部用这一个编辑器写</b>。板块与标题必填；
+      正文支持 <code>## 小标题</code>、<code>- 列表</code>、<code>&gt; 引用</code>、<code>```代码块```</code>、
+      <code>**加粗**</code> 与 <code>[文字](链接)</code>。标签用逗号分隔，板块页会按标签自动生成筛选条。
+    </p>
+    <form class="trip-form" id="post-form">
+      <input type="hidden" id="post-id">
+      <label class="bar__field">板块
+        <select id="post-section">
+          <option value="life">生活记录</option>
+          <option value="learn">学习笔记</option>
+          <option value="work">作品与项目</option>
+          <option value="media">书影音</option>
+          <option value="skill">技能与工具箱</option>
+        </select>
+      </label>
+      <label class="bar__field">标题 <input type="text" id="post-title" required placeholder="如：把阳台改成了小书房"></label>
+      <label class="bar__field">摘要 <input type="text" id="post-excerpt" placeholder="可选，列表页显示一行"></label>
+      <label class="bar__field">标签 <input type="text" id="post-tags" placeholder="逗号分隔，如：阳台,改造"></label>
+      <label class="bar__field">日期 <input type="date" id="post-date"></label>
+      <label class="bar__field">可见性
+        <select id="post-vis">
+          <option value="public">公开</option>
+          <option value="link">仅链接</option>
+          <option value="private">仅自己</option>
+        </select>
+      </label>
+      <label class="bar__field">正文（空行分段）
+        <textarea id="post-body" rows="12" placeholder="## 小标题&#10;正文……&#10;&#10;- 列表项"></textarea>
+      </label>
+      <button class="btn btn--primary" type="submit" id="post-save">保存</button>
+      <button class="btn" type="button" id="post-reset">清空表单</button>
+      <a class="btn" href="/" target="_blank" rel="noopener">看首页</a>
+    </form>
+    <p class="hint" id="post-status" role="status"></p>
+    <div id="post-admin-list"></div>
+  </section>
+
 </main>
 
 <footer class="footer">
@@ -161,5 +202,6 @@
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/exifr.js"></script>
 <script src="admin.js"></script>
+<script src="admin-posts.js"></script>
 </body>
 </html>
