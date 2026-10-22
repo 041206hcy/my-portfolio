@@ -1,11 +1,9 @@
 /* ==========================================================================
-   子页：刊头、年份分组、旅程行、单次旅程、双栏地图、空状态
+   子页层：刊头 / 年份分组 / 旅程行 / 单次旅程 / 双栏地图 / 筛选 / 空状态
    依赖 styles.css 的 token 与 layout.css 的 .sheet / .band / .head / .colophon
    ========================================================================== */
 
-/* 短页面时把版权页压到视口底部，避免下方留一大块空白
-   注意：只让 main 成为竖向 flex 容器；body 不能改成 flex，
-   否则 main 的 `margin: 0 auto` 会让它退化成 shrink-to-fit（内容被压窄）。 */
+/* 短页面时把版权页压到视口底部，避免下方留一块空白 */
 body.page--wide > main {
   display: flex;
   flex-direction: column;
@@ -13,190 +11,393 @@ body.page--wide > main {
 }
 body.page--wide > main > .colophon { margin-top: auto; }
 
-/* ---------- 刊头 ---------- */
+/* ==========================================================================
+   子页刊头
+   —— 和首页共用同一套「压线 + 图号」语法：
+      顶部 44px 水系蓝压线，图号用等宽，标题最大，描述 54ch，统计行等宽。
+   ========================================================================== */
+
 .page-head {
-  padding: clamp(30px, 4.6vw, 62px) 0 clamp(22px, 3vw, 38px);
-  border-bottom: 1px solid var(--line);
-  margin-bottom: clamp(20px, 3.4vw, 40px);
+  position: relative;
+  padding: clamp(32px, 4.4vw, 60px) 0 clamp(20px, 2.6vw, 34px);
+  margin-bottom: clamp(20px, 3vw, 36px);
+  border-bottom: var(--hair) solid var(--line-3);
+}
+.page-head::before {
+  content: "";
+  position: absolute; left: 0; bottom: -1px;
+  width: 44px; height: 3px;
+  background: var(--azur);
 }
 .page-head__kicker {
-  font-family: var(--font-sans);
-  font-size: var(--fs-xs);
-  letter-spacing: .2em;
-  color: var(--muted);
-  margin: 0 0 var(--space-3);
+  font-family: var(--f-mono);
+  font-size: var(--t-1);
+  letter-spacing: .14em;
+  color: var(--azur);
+  margin: 0 0 var(--s3);
 }
 .page-head__title {
-  font-family: var(--font-serif);
-  font-size: var(--fs-h1);
-  font-weight: 600;
-  line-height: 1.12;
-  letter-spacing: -.01em;
-  margin: 0 0 var(--space-3);
-  color: var(--text);
+  font-size: clamp(30px, 4.4vw, 46px);
+  line-height: 1.16;
+  letter-spacing: .005em;
+  margin: 0 0 var(--s3);
+  color: var(--ink);
 }
-.page-head__desc { max-width: 54ch; color: var(--ink-2); margin: 0; }
+.page-head__desc {
+  max-width: 54ch;
+  color: var(--ink-2);
+  font-size: var(--t-3);
+  margin: 0;
+}
 .page-head__meta {
-  margin: var(--space-4) 0 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-4);
-  font-size: var(--fs-xs);
-  color: var(--muted);
+  display: flex; flex-wrap: wrap;
+  gap: var(--s1) var(--s5);
+  margin: var(--s4) 0 0;
+  font-family: var(--f-mono);
+  font-size: var(--t-1);
+  color: var(--mute);
 }
 .page-head__meta b {
-  font-family: var(--font-serif);
-  font-size: var(--fs-md);
-  color: var(--text);
+  font-family: var(--f-mono);
+  font-size: var(--t-3);
   font-weight: 600;
+  color: var(--ink);
+  margin-right: 4px;
 }
 
-/* ---------- 年份分组 ---------- */
+/* 子页刊头之后紧跟的栏目头：刊头自己已经有一条通栏底线，
+   再叠一条会变成「双线」，看起来像没对齐。这里只保留刊头那条。 */
+.page-head + .band .head { border-top: 0; padding-top: 0; }
+.page-head + .band .head::before { display: none; }
+
+/* ==========================================================================
+   年份分组
+   ========================================================================== */
+
 .year-head {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-3);
-  margin: clamp(26px, 4vw, 44px) 0 var(--space-4);
+  display: flex; align-items: baseline;
+  gap: var(--s3);
+  margin: clamp(26px, 3.6vw, 42px) 0 var(--s4);
 }
 .year-head:first-of-type { margin-top: 0; }
 .year-head__no {
-  font-family: var(--font-serif);
-  font-size: var(--fs-xl);
-  color: var(--accent);
+  font-family: var(--f-mono);
+  font-size: var(--t-4);
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: .02em;
   line-height: 1;
 }
 .year-head__line { flex: 1; height: 1px; background: var(--line); }
-.year-head__count { font-size: var(--fs-xs); color: var(--muted); }
+.year-head__count { font-size: var(--t-1); color: var(--mute); }
 
-/* ---------- 旅程行 ---------- */
+/* ==========================================================================
+   旅程行：缩略图 / 正文 / 右侧计数
+   ========================================================================== */
+
 .rows { display: grid; }
 .row-trip {
   display: grid;
   grid-template-columns: 168px minmax(0, 1fr) auto;
-  gap: clamp(14px, 2.4vw, 30px);
+  gap: clamp(14px, 2.4vw, 32px);
   align-items: center;
-  padding: var(--space-5) 0;
-  border-bottom: 1px solid var(--line);
-  color: var(--text);
+  padding: var(--s4) 0;
+  border-bottom: var(--hair) solid var(--line);
+  color: inherit;
+  text-decoration: none;
+  transition: background-color .15s ease;
 }
-.rows .row-trip:first-child { border-top: 1px solid var(--line); }
-.row-trip:hover { background: rgba(255, 255, 255, .42); text-decoration: none; }
+.rows .row-trip:first-child { border-top: var(--hair) solid var(--line); }
+.row-trip:hover { background: var(--paper-2); text-decoration: none; }
+.row-trip:focus-visible { outline: 2px solid var(--azur); outline-offset: -2px; }
+
 .row-trip__thumb {
   aspect-ratio: 4 / 3;
+  padding: 4px;
   overflow: hidden;
-  background: var(--bg-soft);
-  border: 5px solid #fffefb;
-  border-radius: 2px;
-  box-shadow: 0 1px 0 rgba(43, 38, 32, .06), 0 10px 20px -16px rgba(43, 38, 32, .55);
 }
 .row-trip__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.row-trip__title {
-  font-family: var(--font-serif);
-  font-size: var(--fs-lg);
-  font-weight: 600;
-  margin: 0 0 3px;
-}
-.row-trip__sub { color: var(--muted); font-size: var(--fs-xs); margin: 0 0 6px; letter-spacing: .04em; }
-.row-trip__desc { color: var(--ink-2); font-size: var(--fs-sm); margin: 0; max-width: 56ch; }
+.row-trip__title { font-size: var(--t-4); font-weight: 600; margin: 0 0 3px; }
+.row-trip__sub { color: var(--mute); font-size: var(--t-1); margin: 0 0 6px; }
+.row-trip__desc { color: var(--ink-2); font-size: var(--t-2); margin: 0; max-width: 56ch; }
 .row-trip__side {
   text-align: right;
-  font-size: var(--fs-xs);
-  color: var(--muted);
+  font-family: var(--f-mono);
+  font-size: var(--t-1);
+  color: var(--mute);
   white-space: nowrap;
-  line-height: 1.7;
+  line-height: 1.8;
 }
-.row-trip__side b { font-family: var(--font-serif); font-size: var(--fs-md); color: var(--text); font-weight: 600; }
-.row-trip__arrow { display: block; color: var(--accent); font-size: var(--fs-base); margin-top: 2px; }
+.row-trip__side b { font-family: var(--f-mono); font-size: var(--t-3); color: var(--ink); font-weight: 600; }
+.row-trip__arrow { display: block; color: var(--azur); font-size: var(--t-2); margin-top: 2px; }
+.row-trip:hover .row-trip__title { color: var(--azur); }
 
-/* ---------- 单次旅程 ---------- */
-.journey-hero { margin-bottom: clamp(22px, 3.6vw, 40px); }
+/* ==========================================================================
+   单次旅程
+   ========================================================================== */
+
+.journey-hero { margin-bottom: clamp(22px, 3.4vw, 38px); }
 .journey-hero__img {
   width: 100%;
   aspect-ratio: 21 / 9;
   overflow: hidden;
-  border-radius: 2px;
-  background: var(--bg-soft);
-  border: 1px solid var(--line);
+  border: var(--hair) solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper-2);
 }
 .journey-hero__img img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .journey-hero__cap {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-4);
-  flex-wrap: wrap;
-  padding-top: var(--space-3);
-  font-size: var(--fs-xs);
-  color: var(--muted);
+  display: flex; justify-content: space-between;
+  gap: var(--s4); flex-wrap: wrap;
+  padding-top: var(--s3);
+  font-family: var(--f-mono);
+  font-size: var(--t-1);
+  color: var(--mute);
 }
 
-/* ---------- 上下篇 ---------- */
+/* 数据条：一次旅程顶部的实测数据 */
+.stats-strip {
+  display: flex; flex-wrap: wrap;
+  gap: var(--s2) clamp(24px, 4vw, 44px);
+  margin: var(--s3) 0 0;
+  padding: var(--s3) 0;
+  border-top: var(--hair) solid var(--line);
+  border-bottom: var(--hair) solid var(--line);
+}
+.stats-strip > div { display: flex; flex-direction: column; gap: 1px; }
+.stats-strip b {
+  font-family: var(--f-mono);
+  font-size: var(--t-5); font-weight: 600; line-height: 1.15;
+  color: var(--ink);
+}
+.stats-strip span {
+  font-size: var(--t-1); color: var(--mute); letter-spacing: .1em;
+}
+
+/* 按天分组 */
+.day-head { display: flex; align-items: baseline; gap: var(--s3); margin: var(--s6) 0 var(--s3); }
+.day-head__date {
+  font-family: var(--f-mono); font-size: var(--t-4); font-weight: 600;
+  color: var(--ink); letter-spacing: .02em;
+}
+.day-head__line { flex: 1; border-top: var(--hair) solid var(--line); }
+.day-head__count { font-size: var(--t-1); color: var(--mute); }
+
+/* 上下篇 */
 .pager {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-4);
-  margin: clamp(30px, 5vw, 54px) 0 0;
-  padding-top: var(--space-5);
-  border-top: 1px solid var(--line);
+  display: flex; justify-content: space-between;
+  gap: var(--s4);
+  margin: clamp(32px, 4.6vw, 52px) 0 0;
+  padding-top: var(--s5);
+  border-top: var(--hair) solid var(--line-3);
 }
-.pager a { color: var(--text); }
-.pager a span { display: block; font-size: var(--fs-xs); color: var(--muted); letter-spacing: .1em; margin-bottom: 3px; }
-.pager__next { text-align: right; }
+.pager a { color: var(--ink); text-decoration: none; max-width: 46%; }
+.pager a:hover { color: var(--azur); }
+.pager a span {
+  display: block; font-family: var(--f-mono); font-size: 11px;
+  color: var(--mute); letter-spacing: .12em; margin-bottom: 4px;
+}
+.pager__next { text-align: right; margin-left: auto; }
 
-/* ---------- 双栏（地图页） ---------- */
+/* ==========================================================================
+   双栏（地图页）
+   ========================================================================== */
+
 .twocol {
   display: grid;
   grid-template-columns: 300px minmax(0, 1fr);
-  margin-bottom: clamp(28px, 4vw, 56px);
-  gap: clamp(18px, 3vw, 36px);
+  gap: clamp(20px, 3vw, 40px);
   align-items: start;
+  margin-bottom: clamp(28px, 4vw, 52px);
 }
-.twocol__side { position: sticky; top: calc(var(--nav-h) + var(--space-4)); }
-.place-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
-.place-list li { border-bottom: 1px solid var(--line); }
+.twocol__side { position: sticky; top: calc(var(--nav-h) + var(--s4)); }
+
+.place-list { list-style: none; margin: 0; padding: 0; border-top: var(--hair) solid var(--line-3); }
+.place-list li { border-bottom: var(--hair) solid var(--line); }
 .place-list button {
   width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: var(--space-3);
-  padding: 10px 4px;
-  background: none;
-  border: 0;
-  font: inherit;
-  color: var(--text);
-  text-align: left;
-  cursor: pointer;
+  display: flex; justify-content: space-between; align-items: baseline;
+  gap: var(--s3);
+  padding: 11px 2px;
+  min-height: 44px;
+  background: none; border: 0;
+  font: inherit; font-size: var(--t-2);
+  color: var(--ink); text-align: left; cursor: pointer;
 }
-.place-list button:hover { color: var(--accent); }
-.place-list b { font-family: var(--font-serif); font-weight: 600; }
-.place-list em { font-style: normal; color: var(--muted); font-size: var(--fs-xs); }
-.map--stage { min-height: clamp(420px, 62svh, 680px); }
+.place-list button:hover { color: var(--azur); }
+.place-list b { font-weight: 600; }
+.place-list em { font-style: normal; color: var(--mute); font-size: var(--t-1); font-family: var(--f-mono); }
 
-/* ---------- 空状态 ---------- */
-.empty {
-  padding: clamp(28px, 5vw, 64px) 0;
-  text-align: center;
-  color: var(--muted);
-  font-size: var(--fs-sm);
+.map--stage { min-height: clamp(420px, 62svh, 660px); }
+
+
+/* ==========================================================================
+   筛选（相册页）
+   ========================================================================== */
+
+.filters {
+  display: flex; flex-wrap: wrap;
+  gap: var(--s2);
+  margin: var(--s5) 0 var(--s3);
 }
-.empty b { display: block; font-family: var(--font-serif); font-size: var(--fs-lg); color: var(--text); font-weight: 600; margin-bottom: 6px; }
+.filters__item {
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: var(--hair) solid var(--line);
+  border-radius: var(--radius);
+  font-size: var(--t-2);
+  color: var(--mute);
+  text-decoration: none;
+  transition: border-color .15s ease, color .15s ease, background-color .15s ease;
+}
+.filters__item b { font-family: var(--f-mono); font-weight: 600; color: var(--ink); }
+.filters__item:hover { border-color: var(--line-2); color: var(--ink); }
+.filters__item.is-on {
+  border-color: var(--azur); background: var(--azur-wash); color: var(--azur);
+}
+.filters__item.is-on b { color: var(--azur); }
+.album__more { text-align: center; margin: var(--s5) 0 0; }
 
-/* ---------- 响应式 ---------- */
+/* ==========================================================================
+   年份 rail（旅程列表右侧/左侧）
+   ========================================================================== */
+
+.rail {
+  position: sticky;
+  top: calc(var(--nav-h) + var(--s4));
+  font-size: var(--t-2);
+}
+.rail__title {
+  margin: 0 0 var(--s2);
+  font-family: var(--f-mono); font-size: 11px;
+  letter-spacing: .18em; color: var(--mute);
+}
+.rail a {
+  display: flex; justify-content: space-between; gap: var(--s2);
+  padding: 7px 0;
+  color: var(--mute);
+  text-decoration: none;
+  border-bottom: var(--hair) solid var(--line);
+}
+.rail a:hover { color: var(--azur); }
+.rail a b { font-family: var(--f-mono); font-weight: 600; }
+
+/* ==========================================================================
+   日常照片出口（一次旅程页底部的「散片」入口）
+   ========================================================================== */
+
+.loose {
+  display: flex; align-items: center;
+  gap: var(--s4);
+  margin-top: var(--s6);
+  padding: var(--s4) var(--s5);
+  border: var(--hair) dashed var(--line-2);
+  border-radius: var(--radius);
+  background: var(--paper-2);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color .15s ease;
+}
+.loose:hover { border-color: var(--azur); border-style: solid; }
+.loose__title { font-size: var(--t-4); font-weight: 600; color: var(--ink); }
+.loose__meta { flex: 1; font-size: var(--t-1); color: var(--mute); font-family: var(--f-mono); }
+
+/* ==========================================================================
+   编排式内容组件：笔记行 / 项目条 / 事实表 / 技能组
+   —— 这些原来散落在 styles.css 与 layout.css 里，各写一套字号，
+      现在统一成「左边等宽标签 + 右边内容」的一种结构。
+   ========================================================================== */
+
+
+/* ---------- 项目条：日期在左，正文在右 ---------- */
+.entry {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: var(--s3) var(--s5);
+  padding: var(--s5) 0;
+  border-top: var(--hair) solid var(--line);
+}
+.entry:first-of-type { border-top: var(--hair) solid var(--line-3); }
+.entry__side {
+  margin: 0;
+  font-family: var(--f-mono);
+  font-size: var(--t-1);
+  line-height: 1.7;
+  color: var(--mute);
+  padding-top: 5px;
+}
+.entry__title { font-size: var(--t-4); font-weight: 600; margin: 0 0 var(--s2); }
+.entry__body {
+  margin: 0 0 var(--s3);
+  max-width: 64ch;
+  color: var(--ink-2);
+  font-size: var(--t-3);
+}
+.entry__body strong { color: var(--ink); font-weight: 600; }
+
+/* ---------- 事实表：图例栏的写法 ---------- */
+.facts { margin: 0; border-top: var(--hair) solid var(--line-3); }
+.facts > div {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: var(--s3);
+  padding: 9px 0;
+  border-bottom: var(--hair) solid var(--line);
+}
+.facts dt {
+  font-family: var(--f-mono);
+  font-size: var(--t-1);
+  letter-spacing: .06em;
+  color: var(--mute);
+  padding-top: 2px;
+}
+.facts dd { margin: 0; font-size: var(--t-2); color: var(--ink); }
+.facts a { color: var(--azur); }
+
+/* ---------- 技能组 ---------- */
+.skills {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s5) var(--gutter);
+}
+.skills__group h4 { margin: 0 0 var(--s2); }
+
+
+/* ==========================================================================
+   响应式
+   ========================================================================== */
+
 @media (max-width: 1023px) {
   .twocol { grid-template-columns: 1fr; }
+  .skills { grid-template-columns: 1fr 1fr; }
   .twocol__side { position: static; }
   .place-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .place-list li { border-bottom: 1px solid var(--line); }
-  .place-list li:nth-child(odd) { border-right: 1px solid var(--line); padding-right: var(--space-3); }
+  .place-list li:nth-child(odd) { border-right: var(--hair) solid var(--line); padding-right: var(--s3); }
 }
 
 @media (max-width: 767px) {
-  .row-trip { grid-template-columns: 108px minmax(0, 1fr); gap: var(--space-4); }
-  .row-trip__side { grid-column: 2; text-align: left; margin-top: 4px; }
+  .row-trip { grid-template-columns: 104px minmax(0, 1fr); gap: var(--s3); }
+  .row-trip__side { grid-column: 2; text-align: left; margin-top: 2px; }
   .row-trip__arrow { display: none; }
+  .row-trip__desc { display: none; }   /* 小屏先保标题与日期，摘要是第二层信息 */
   .journey-hero__img { aspect-ratio: 16 / 10; }
   .place-list { grid-template-columns: 1fr; }
   .place-list li:nth-child(odd) { border-right: 0; padding-right: 0; }
-  .pager { flex-direction: column; gap: var(--space-4); }
+  .pager { flex-direction: column; gap: var(--s4); }
+  .pager a { max-width: none; }
   .pager__next { text-align: left; }
+  .rail { display: none; }
+  .loose { flex-direction: column; align-items: flex-start; gap: var(--s2); }
+  .loose__meta { flex: none; }
+  .note-row { grid-template-columns: 1fr; gap: var(--s1); }
+  .note-row__date { padding-top: 0; }
+  .entry { grid-template-columns: 1fr; gap: var(--s2); }
+  .entry__side { padding-top: 0; }
+  .skills { grid-template-columns: 1fr; gap: var(--s4); }
+  .facts > div { grid-template-columns: 68px minmax(0, 1fr); }
 }
+
+/* 有版权页的页面：main 的底部内边距会让深色页脚下面露出一条纸色，
+   这里收掉（版权页自己有上下留白）。 */
+body.page--wide > main { padding-bottom: 0; }

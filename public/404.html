@@ -3,15 +3,80 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>页面不存在 · 黄翀与</title>
+<title>页面不存在 · 黄翀与的旅程</title>
 <meta name="robots" content="noindex">
+<meta name="theme-color" content="#f2f3ee">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/styles.css">
+<link rel="stylesheet" href="/layout.css">
+<style>
+  /* 404 只有这一页用，所以样式留在本页，不进主样式表 */
+  .lost {
+    min-height: calc(100svh - var(--nav-h));
+    display: grid;
+    place-content: center;
+    justify-items: start;
+    padding: var(--band) 0;
+    text-align: left;
+  }
+  .lost__no {
+    font-family: var(--f-mono);
+    font-size: clamp(56px, 11vw, 112px);
+    line-height: 1;
+    letter-spacing: -.02em;
+    color: var(--ink);
+    margin: 0 0 var(--s4);
+  }
+  .lost__title { font-size: var(--t-5); margin: 0 0 var(--s2); }
+  .lost__text { color: var(--mute); max-width: 40ch; margin: 0 0 var(--s5); }
+  .lost__acts { display: flex; flex-wrap: wrap; gap: var(--s3); }
+  /* 右侧一张空图幅：经纬网格 + 左向渐隐，和首页「还没有照片」时同一套语言 */
+  .lost__grid {
+    position: fixed;
+    inset: 0 0 0 auto;
+    width: min(38%, 420px);
+    pointer-events: none;
+    background-image:
+      repeating-linear-gradient(to right, var(--line) 0 1px, transparent 1px 32px),
+      repeating-linear-gradient(to bottom, var(--line) 0 1px, transparent 1px 32px);
+    -webkit-mask-image: linear-gradient(to left, #000 25%, transparent 100%);
+    mask-image: linear-gradient(to left, #000 25%, transparent 100%);
+    opacity: .5;
+  }
+  @media (max-width: 767px) { .lost__grid { display: none; } }
+</style>
 </head>
-<body>
-<main style="padding-top:12vh;text-align:center">
-  <h1 class="hero__name">404</h1>
-  <p class="section__text">这个页面不存在，或者已经被移动了。</p>
-  <p style="margin-top:24px"><a class="btn btn--primary" href="/">回到首页</a></p>
+<body class="page--wide">
+
+<a class="skip" href="#main">跳到主内容</a>
+
+<header class="nav" id="top">
+  <a class="nav__brand" href="/">黄翀与的旅程</a>
+  <nav class="nav__links" aria-label="主导航">
+    <a href="/journeys">旅程</a>
+    <a href="/map">地图</a>
+    <a href="/photos">照片</a>
+    <a href="/notes">笔记</a>
+    <a href="/about">关于</a>
+  </nav>
+</header>
+
+<main id="main">
+  <div class="lost__grid" aria-hidden="true"></div>
+
+  <section class="lost">
+    <p class="kicker">404 · 图幅缺失</p>
+    <p class="lost__no">404</p>
+    <h1 class="lost__title">这一格没有图幅</h1>
+    <p class="lost__text">
+      链接可能过期了，也可能这条笔记改过名字。回首页看看，或者直接翻照片。
+    </p>
+    <div class="lost__acts">
+      <a class="btn btn--primary" href="/">回到首页</a>
+      <a class="btn" href="/photos">翻照片</a>
+    </div>
+  </section>
 </main>
+
 </body>
 </html>

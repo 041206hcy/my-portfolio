@@ -1,334 +1,533 @@
-/* ============================================================
-   复合版式层（P0）
-   只放「版式语法」：12 列网格 / band / 章节头 / 刊头 / 目录条 / 错版墙。
-   颜色与字体仍以 styles.css 的 token 为准，本文件不重新定义主色。
-   ============================================================ */
+/* ==========================================================================
+   版式层「图幅」
+   --------------------------------------------------------------------------
+   只放版式语法：栅格 / 段落（band）/ 栏目头 / 刊头 / 目录条 / 图版墙。
+   颜色与字阶一律取 styles.css 的 token，本文件不新增颜色。
+   ========================================================================== */
 
-:root {
-  --accent-ink: #9d4630;   /* 正文级砖红：纸底对比 5.66:1（--accent 只给 ≥21px 与大色块） */
-  --fs-lead: 18px;         /* 副标、导语加强 */
-  --fs-quote: 24px;        /* 统计数字、年份（宋体） */
-  --fs-h1: clamp(40px, 5.2vw, 64px);
-  --fs-h2: 30px;           /* 子页/章节大标题 */
-  --gutter: 20px;
+/* ---------- 12 列栅格 ---------- */
+.sheet {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 0 var(--gutter);
 }
-
-html { overflow-x: clip; }
-
-/* 纸纹层压到内容之上、灯箱之下（原来 9999 会在大图上蒙一层颗粒） */
-body::after { z-index: 1; }
-.lightbox { z-index: 1000; }
-
-/* 跳到主内容：只在键盘聚焦时出现 */
-.skip {
-  position: absolute; left: -9999px; top: 0; z-index: 50;
-  background: var(--card); border: 1px solid var(--line);
-  padding: 10px 16px; font-size: var(--fs-base);
-}
-.skip:focus { left: 8px; top: 8px; }
-
-/* 导航：视觉不变，可点区域抬到 44px 以上 */
-.nav__links { gap: 12px; align-items: center; }
-.nav__links a { display: inline-block; padding: 11px 4px; }
-
-/* ---------- 12 列网格 ---------- */
-.sheet { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--gutter); }
-.c-4, .c-5, .c-6, .c-7, .c-8, .c-12 { min-width: 0; }
+.c-3, .c-4, .c-5, .c-6, .c-7, .c-8, .c-9, .c-12, .c-full { min-width: 0; }
+.c-3 { grid-column: span 3; }
 .c-4 { grid-column: span 4; }
 .c-5 { grid-column: span 5; }
 .c-6 { grid-column: span 6; }
 .c-7 { grid-column: span 7; }
 .c-8 { grid-column: span 8; }
-.c-12 { grid-column: 1 / -1; }
-.c-full { grid-column: 1 / -1; min-width: 0; }
+.c-9 { grid-column: span 9; }
+.c-12, .c-full { grid-column: 1 / -1; }
 
-/* ---------- 段落（band） ---------- */
-.band { padding: var(--space-16) 0; }
-.band--tight { padding: var(--space-10) 0; }
-.band--soft { background: var(--bg-soft); }
-/* 满版：底色与地图铺到视口边缘，正文仍留在 1180 容器内 */
-.band--bleed { width: 100vw; margin-inline: calc(50% - 50vw); }
-.band__inner { max-width: var(--maxw); margin: 0 auto; padding: 0 22px; }
+/* ==========================================================================
+   段落（band）
+   —— 一个 band = 图幅上的一栏。上下留白由 --band 统一给，
+      不用每个页面自己写 padding，这是「节奏统一」的根。
+   ========================================================================== */
 
-/* 同底色相邻段落之间用细线分开；换了底色就不再画线，避免双信号打架 */
-.band + .band:not(.band--soft) { border-top: 1px solid var(--line); }
+.band { padding: var(--band) 0; }
+.band--tight { padding: var(--s7) 0; }
+.band--soft { background: var(--paper-2); }
+
+/* 满版：底色铺到视口边缘，内容仍留在容器里 */
+.band--bleed {
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+}
+.band__inner {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 clamp(14px, 2.4vw, 28px);
+}
+
+/* 相邻同底色段落之间用一条细线分开；换了底色就不再画线，避免两个信号打架 */
+.band + .band:not(.band--soft) { border-top: var(--hair) solid var(--line); }
 .band--soft + .band { border-top: 0; }
 
-/* ---------- 章节头（替代四处复制的 .section__title） ---------- */
+/* 注：这里试过 content-visibility: auto + contain-intrinsic-size，
+   相册页确实省渲染，但锚点跳转与「回到顶部」时会闪一下白（浏览器来不及渲染新进入视口的段落），
+   而这个站的导航大量用锚点，所以放弃。图片已经 lazy，收益不值得这个代价。 */
+
+/* ==========================================================================
+   栏目头
+   —— 一根通栏细线 + 左上角 44px 的水系蓝压线 + 右侧等宽计数。
+      这替代了原来的 01 / 02 / 03 编号：编号只在目录条里出现一次。
+   ========================================================================== */
+
 .head {
-  display: grid; grid-template-columns: auto 1fr auto; align-items: end;
-  gap: var(--space-2) var(--space-4); padding-bottom: var(--space-3);
-  border-bottom: 1px solid var(--line); margin-bottom: var(--space-8);
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--s1) var(--s5);
+  align-items: baseline;
+  padding-top: var(--s4);
+  margin: 0 0 var(--s6);
+  border-top: var(--hair) solid var(--line-3);
 }
-.head__no {
-  font-family: var(--font-serif); font-size: var(--fs-xl); color: var(--accent);
-  margin: 0; line-height: 1; letter-spacing: .04em;
+.head::before {
+  content: "";
+  position: absolute; left: 0; top: -1px;
+  width: 44px; height: 3px;
+  background: var(--azur);
 }
-.head__title { font-size: var(--fs-h2); margin: 0; line-height: 1.2; }
-.head__sub { grid-column: 2; margin: 0; color: var(--muted); font-size: var(--fs-sm); }
+.head__title {
+  grid-column: 1; grid-row: 1;
+  font-size: var(--t-5);
+  margin: 0;
+}
+.head__sub {
+  grid-column: 1; grid-row: 2;
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--mute);
+  max-width: 46ch;
+}
 .head__more {
-  grid-column: 3; grid-row: 1 / span 2; align-self: end;
-  font-size: var(--fs-sm); color: var(--muted); text-align: right; white-space: nowrap;
+  grid-column: 2; grid-row: 1 / span 2;
+  align-self: end;
+  text-align: right;
+  white-space: nowrap;
+  font-size: var(--t-1);
+  color: var(--mute);
 }
-.head__more a { color: var(--accent); }
+.head__more a { color: var(--azur); text-decoration: underline; }
+/* 旧编号位：留着选择器，但不再占版面 */
+.head__no { display: none; }
 
-/* ---------- 眉标 ---------- */
-.kicker { margin: 0 0 var(--space-4); font-size: var(--fs-xs); letter-spacing: .18em; color: var(--muted); }
+/* ==========================================================================
+   刊头
+   文字占 1–6 列，图版占 7–12 列。文字左对齐到一个硬边，图版故意错开 7° 以内。
+   ========================================================================== */
 
-/* ---------- 刊头：文字 1–6 列，相纸 8–12 列 ---------- */
 .masthead {
-  display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--gutter);
-  align-content: center; min-height: clamp(560px, 74svh, 720px);
-  padding: var(--space-12) 0 var(--space-10);
-}
-.masthead__lede { grid-column: 1 / span 6; }
-.masthead__plates { grid-column: 8 / span 5; position: relative; padding-bottom: 56px; min-height: 380px; }
-.masthead__name { font-size: var(--fs-h1); line-height: 1.14; letter-spacing: .02em; margin: 0 0 var(--space-4); }
-.masthead__rule { width: 44px; height: 2px; background: var(--accent); margin: 0 0 var(--space-4); }
-.masthead__tag { font-size: var(--fs-lead); letter-spacing: .12em; color: var(--accent-ink); margin: 0 0 var(--space-5); }
-.masthead__desc { max-width: 34ch; color: var(--ink-2); font-size: var(--fs-md); margin: 0 0 var(--space-6); }
-.masthead__stats { margin: 0 0 var(--space-6); font-size: var(--fs-sm); color: var(--muted); }
-.masthead__stats b {
-  font-family: var(--font-serif); font-size: var(--fs-quote); color: var(--text);
-  font-weight: 600; margin-right: 2px;
-}
-.masthead__stats .stat-dot { margin: 0 10px; color: var(--rule-strong); }
-.masthead__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); }
-.masthead__meta {
-  grid-column: 1 / -1; margin: var(--space-8) 0 0; padding-top: var(--space-3);
-  border-top: 1px solid var(--line); font-size: var(--fs-xs);
-  color: var(--muted); letter-spacing: .04em;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--gutter);
+  align-content: center;
+  min-height: clamp(500px, 68svh, 660px);
+  padding: clamp(40px, 5vw, 72px) 0 var(--s7);
 }
 
-/* 相纸：白边只有这一种规格（7px / 1px line / 2px radius） */
+/* 图廓角标试过一版（图版区左下/右下的短折线），在宽屏上像碎屑、在图版没到底时像故障，删掉。
+   图幅的语言由「通栏细线 + 左侧压线 + 等宽数字 + 格网」四样东西承担，够了。 */
+
+.masthead__lede { grid-column: 1 / span 6; }
+
+.masthead__name {
+  font-size: var(--t-7);
+  line-height: var(--lh-tight);
+  letter-spacing: .005em;
+  font-weight: 700;
+  margin: 0 0 var(--s4);
+}
+
+/* 标题下的一道压线：去掉装饰弧线，只留一根 56px 的实线 */
+.masthead__rule {
+  width: 56px; height: 3px;
+  background: var(--azur);
+  margin: 0 0 var(--s4);
+}
+
+.masthead__tag {
+  font-size: var(--t-4);
+  color: var(--ink);
+  letter-spacing: .04em;
+  margin: 0 0 var(--s3);
+}
+
+.masthead__desc {
+  max-width: 27em;          /* 中文按字算：一行 27 字，三行以内说完 */
+  font-size: var(--t-3);
+  color: var(--ink-2);
+  margin: 0 0 var(--s5);
+}
+
+/* 统计行：数字等宽、更大、更深；单位回正文色 */
+.masthead__stats {
+  display: flex; flex-wrap: wrap; align-items: baseline;
+  gap: 0 var(--s2);
+  margin: 0 0 var(--s5);
+  font-size: var(--t-1);
+  color: var(--mute);
+}
+.masthead__stats b {
+  font-family: var(--f-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-5);
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -.01em;
+  margin-right: 2px;
+}
+.stat-dot { color: var(--line-3); margin: 0 var(--s2); }
+
+.masthead__actions { display: flex; flex-wrap: wrap; gap: var(--s3); }
+
+/* 刊头底部元信息：整页的「图幅编号行」 */
+.masthead__meta {
+  grid-column: 1 / -1;
+  margin: var(--s7) 0 0;
+  padding-top: var(--s3);
+  border-top: var(--hair) solid var(--line);
+  font-size: var(--t-1);
+  color: var(--mute);
+  word-break: keep-all;   /* 中文别在「张照片」中间断行 */
+  overflow-wrap: anywhere;
+}
+
+/* ---------- 图版组：三张纸，压角关系写死，不做随机 ---------- */
+.masthead__plates {
+  grid-column: 8 / span 5;
+  position: relative;
+  min-height: 400px;
+  padding-bottom: 40px;
+}
+
 .plate {
-  background: #fffefb; border: 1px solid var(--line); border-radius: 2px;
-  padding: 7px 7px 0; box-shadow: 0 1px 2px rgba(43, 38, 32, .07); margin: 0;
-  transition: transform .25s ease;
+  margin: 0;
+  padding: 6px 6px 0;
+  transition: transform .3s cubic-bezier(.2, .7, .3, 1);
 }
 .plate img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.plate--main { width: 76%; aspect-ratio: 4 / 5; margin-left: 24%; transform: rotate(1.2deg); }
-.plate--sub { width: 46%; aspect-ratio: 3 / 4; position: absolute; left: 0; bottom: 0; transform: rotate(-2.4deg); }
-.plate--stamp { width: 30%; aspect-ratio: 1 / 1; position: absolute; right: 4%; bottom: 12%; transform: rotate(2.8deg); }
-.plate--main:hover { transform: rotate(0deg) scale(1.01); }
+.plate--main  { width: 74%; aspect-ratio: 4 / 5; margin-left: 26%; transform: rotate(1.1deg); }
+.plate--sub   { width: 45%; aspect-ratio: 3 / 4; position: absolute; left: 0; bottom: 0; transform: rotate(-2.2deg); }
+.plate--stamp { width: 29%; aspect-ratio: 1 / 1; position: absolute; right: 2%; bottom: 18%; transform: rotate(2.6deg); }
+.plate--main:hover { transform: rotate(0deg); }
+
+/* 坐标胶囊：等宽、底色贴纸、带 1px 边 —— 唯一带「标签」感的小件 */
 .coord {
-  position: absolute; left: 12px; bottom: 10px; font-size: var(--fs-xs);
-  background: rgba(247, 243, 234, .88); border: 1px solid var(--line); border-radius: 2px;
-  padding: 1px 6px; color: var(--ink-2); letter-spacing: .04em;
+  position: absolute; left: 10px; bottom: 8px;
+  padding: 1px 6px;
+  background: rgba(253, 254, 250, .94);
+  border: var(--hair) solid var(--line-2);
+  border-radius: var(--radius);
+  font-size: 11px;
+  color: var(--ink-2);
+  letter-spacing: .02em;
 }
 
-/* 没有照片时：刊头变单列，但不塌 */
-.masthead--bare { grid-template-columns: 1fr; }
+/* ---------- 没有照片时的刊头 ----------
+   不留白、不塌陷：右侧补一张 10px 格网的空白图幅（纯背景，无额外请求）。
+   JS 只会加 .masthead--bare，所以这段必须让它在「完全没有图版」时也立得住。 */
+.masthead--bare { grid-template-columns: 1fr; min-height: clamp(440px, 60svh, 560px); }
 .masthead--bare .masthead__lede { grid-column: 1 / -1; max-width: 620px; }
 .masthead--bare .masthead__plates { display: none; }
-.masthead--bare .masthead__name { font-size: clamp(40px, 7vw, 72px); }
+.masthead--bare .masthead__name { font-size: clamp(40px, 6.6vw, 72px); }
 
-/* ---------- 目录条 ---------- */
+@media (min-width: 1024px) {
+  .masthead--bare::after {
+    content: "";
+    position: absolute; inset: 0 0 0 auto;
+    width: 34%;
+    border: 0;
+    background-image:
+      repeating-linear-gradient(to right, var(--line) 0 1px, transparent 1px 32px),
+      repeating-linear-gradient(to bottom, var(--line) 0 1px, transparent 1px 32px);
+    -webkit-mask-image: linear-gradient(to left, #000 30%, transparent 100%);
+    mask-image: linear-gradient(to left, #000 30%, transparent 100%);
+    opacity: .45;
+    pointer-events: none;
+  }
+}
+
+/* ==========================================================================
+   目录条：这里才需要编号（它真的是一条条目序列）
+   ========================================================================== */
+
 .toc {
-  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
-  width: 100vw; margin-inline: calc(50% - 50vw);
-  background: var(--bg-soft);
-  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+  background: var(--paper-2);
+  border-top: var(--hair) solid var(--line);
+  border-bottom: var(--hair) solid var(--line);
 }
 .toc__cell {
-  display: grid; grid-template-columns: auto 1fr auto; grid-template-rows: auto auto;
-  align-items: center; gap: 2px var(--space-3);
-  min-height: 104px; padding: var(--space-5) var(--space-6);
-  border-left: 1px solid var(--line); color: var(--text);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 2px var(--s3);
+  min-height: 104px;
+  padding: var(--s5) clamp(14px, 2vw, 24px);
+  border-left: var(--hair) solid var(--line);
+  color: var(--ink);
+  transition: background-color .15s ease;
 }
 .toc__cell:first-child { border-left: 0; }
-.toc__cell:hover { background: rgba(255, 255, 255, .45); text-decoration: none; }
-.toc__no { grid-column: 1; grid-row: 1 / span 2; font-family: var(--font-serif); font-size: var(--fs-xl); color: var(--accent); align-self: center; }
-.toc__name { grid-column: 2; grid-row: 1; font-family: var(--font-serif); font-size: var(--fs-lg); font-weight: 600; }
-.toc__desc { grid-column: 2; grid-row: 2; font-size: var(--fs-xs); color: var(--muted); }
-.toc__arrow { grid-column: 3; grid-row: 1 / span 2; color: var(--accent); }
-
-/* ---------- 最近旅程：7 / 5 跨列 ---------- */
-.feature {
-  display: grid; grid-template-columns: 7fr 5fr; gap: var(--space-8);
-  align-items: start; margin-bottom: var(--space-12);
+.toc__cell:hover { background: var(--paper); text-decoration: none; }
+.toc__cell:focus-visible { outline-offset: -3px; }
+.toc__no {
+  grid-column: 1; grid-row: 1 / span 2;
+  font-family: var(--f-mono); font-size: var(--t-2);
+  color: var(--azur); letter-spacing: .04em;
 }
-.feature__cover { margin: 0; border: 1px solid var(--line); border-radius: 2px; overflow: hidden; background: var(--bg-soft); }
+.toc__name {
+  grid-column: 2; grid-row: 1;
+  font-size: var(--t-4); font-weight: 700; letter-spacing: .02em;
+}
+.toc__desc {
+  grid-column: 2; grid-row: 2;
+  font-size: var(--t-1); color: var(--mute);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.toc__arrow {
+  grid-column: 3; grid-row: 1 / span 2;
+  color: var(--azur);
+  transition: transform .18s ease;
+}
+.toc__cell:hover .toc__arrow { transform: translateX(3px); }
+
+/* ==========================================================================
+   最近一次的旅程：7 / 5 跨列，图左文右
+   ========================================================================== */
+
+.feature {
+  display: grid;
+  grid-template-columns: 7fr 5fr;
+  gap: clamp(20px, 3vw, 44px);
+  align-items: start;
+  margin-bottom: var(--s7);
+  color: inherit;
+}
+a.feature { text-decoration: none; }
+a.feature:focus-visible { outline: 2px solid var(--azur); outline-offset: 4px; }
+
+.feature__cover {
+  margin: 0;
+  border: var(--hair) solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--paper-2);
+}
 .feature__cover img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
-.feature__body { padding-top: var(--space-2); }
-.feature__title { font-size: var(--fs-2xl); margin: 0 0 var(--space-2); line-height: 1.3; }
-.feature__meta { margin: 0 0 var(--space-3); font-size: var(--fs-sm); color: var(--muted); }
-.feature__summary { margin: 0 0 var(--space-4); color: var(--ink-2); font-size: var(--fs-md); }
-.feature__mini { display: flex; gap: var(--space-2); }
-.feature__mini img { width: 72px; height: 72px; object-fit: cover; border: 1px solid var(--line); border-radius: 2px; }
 
-/* ---------- 旅程索引：从「卡片流」改成「报纸栏目」 ---------- */
-.trip-index { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 var(--space-8); }
-.card--flat { padding: var(--space-5) 0; border-top: 1px solid var(--line); }
-.card--flat__title { font-size: var(--fs-lg); margin: 0 0 var(--space-1); }
-.card--flat__meta { margin: 0 0 var(--space-2); font-size: var(--fs-xs); color: var(--muted); }
-.card--flat__summary { margin: 0; font-size: var(--fs-base); color: var(--ink-2); }
+.feature__body { padding-top: var(--s1); }
+.feature__title {
+  font-size: var(--t-6);
+  margin: 0 0 var(--s2);
+  line-height: 1.24;
+}
+.feature__meta { margin: 0 0 var(--s3); font-size: var(--t-1); color: var(--mute); }
+.feature__summary { margin: 0 0 var(--s4); max-width: 42ch; color: var(--ink-2); font-size: var(--t-3); }
+.feature__mini { display: flex; gap: 6px; }
+.feature__mini img {
+  width: 72px; height: 72px; object-fit: cover;
+  border: var(--hair) solid var(--line);
+  border-radius: var(--radius);
+  background: var(--plate);
+}
+.feature__more {
+  margin: var(--s4) 0 0;
+  font-family: var(--f-mono); font-size: var(--t-1);
+  color: var(--azur); letter-spacing: .06em;
+}
+a.feature:hover .feature__title { color: var(--azur); }
+a.feature:hover .feature__more { text-decoration: underline; }
 
-/* ---------- 胶片条 ---------- */
+/* ==========================================================================
+   旅程索引：两列「报头式」行，不套卡片
+   ========================================================================== */
+
+.trip-index {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 clamp(24px, 3.4vw, 48px);
+}
+.card--flat {
+  display: block;
+  padding: var(--s4) 0;
+  border-top: var(--hair) solid var(--line);
+  color: inherit;
+  text-decoration: none;
+}
+.card--flat__title { font-size: var(--t-4); font-weight: 600; margin: 0 0 var(--s1); }
+.card--flat__meta { margin: 0 0 var(--s2); font-size: var(--t-1); color: var(--mute); }
+.card--flat__summary { margin: 0; font-size: var(--t-3); color: var(--ink-2); max-width: 40ch; }
+a.card--flat:hover .card--flat__title { color: var(--azur); }
+a.card--flat:focus-visible { outline: 2px solid var(--azur); outline-offset: 3px; }
+
+/* ==========================================================================
+   胶片条：最近 8 张横向滑动
+   ========================================================================== */
+
 .strip {
-  display: flex; gap: var(--space-3); overflow-x: auto; scroll-snap-type: x mandatory;
-  padding-bottom: var(--space-3); margin-bottom: var(--space-8); scrollbar-width: thin;
+  display: flex; gap: var(--s3);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: var(--s3);
+  margin-bottom: var(--s6);
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-2) transparent;
 }
 .strip__item {
-  flex: 0 0 220px; height: 160px; padding: 0; overflow: hidden;
-  border: 1px solid var(--line); border-radius: 2px; background: var(--bg-soft);
-  cursor: pointer; scroll-snap-align: start;
+  flex: 0 0 220px; height: 155px;
+  padding: 0; overflow: hidden;
+  cursor: zoom-in;
+  scroll-snap-align: start;
+  transition: border-color .15s ease;
 }
 .strip__item img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.strip__item:hover { border-color: var(--line-3); }
+.strip__item:focus-visible { outline: 2px solid var(--azur); outline-offset: 2px; }
 
-/* ---------- 错版墙：4/4/4 · 6/3/3 · 3/6/3 · 4/4/4 ----------
-   同一屏只允许一种相纸：只有 [6] 那几张保留白边，其余是裸图。 */
-.wall.wall--mosaic { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--space-3); }
-.wall--mosaic .wall__item {
-  grid-column: span 4; margin: 0; padding: 0; background: none;
-  border: 0; box-shadow: none;
-}
-.wall--mosaic .wall__item:nth-child(12n+4),
-.wall--mosaic .wall__item:nth-child(12n+8) {
-  grid-column: span 6; background: #fffefb; border: 1px solid var(--line); padding: 7px 7px 0;
-}
-.wall--mosaic .wall__item img { aspect-ratio: 4 / 3; }
-.wall--mosaic .wall__item:nth-child(12n+4) img,
-.wall--mosaic .wall__item:nth-child(12n+8) img { aspect-ratio: 16 / 10; }
-.wall--mosaic figcaption { font-size: var(--fs-xs); }
+/* ==========================================================================
+   照片流
+   —— 用真实比例（JS 按 width/height 写 flex-grow 与 flex-basis），
+      所以不放固定高度、不裁图：一张竖构图就该是竖的。
+   ========================================================================== */
 
-/* ---------- 笔记行 ---------- */
-.note-list { list-style: none; margin: 0; padding: 0; }
-.note-row {
-  display: grid; grid-template-columns: 96px 1fr; gap: var(--space-4);
-  padding: var(--space-4) 0; border-top: 1px solid var(--line);
+.flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;   /* 不拉伸：一张竖构图不该被撑成和横构图一样高 */
+  gap: 10px;
 }
-.note-row:first-child { border-top: 0; }
-.note-row__date { font-size: var(--fs-xs); color: var(--muted); letter-spacing: .06em; padding-top: 3px; }
-.note-row__link { display: block; color: var(--text); }
-.note-row__link:hover { text-decoration: none; }
-.note-row__title { display: block; font-family: var(--font-serif); font-weight: 600; font-size: var(--fs-lg); }
-.note-row__link:hover .note-row__title { color: var(--accent); }
-.note-row__desc { display: block; font-size: var(--fs-base); color: var(--muted); }
-
-/* ---------- 版权页：全站唯一深色区，用来「合上书」 ---------- */
-.colophon { background: var(--text); color: #f0ead9; padding: var(--space-12) 0; }
-.colophon__grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: var(--space-8); }
-.colophon a { color: #f0ead9; text-decoration: underline; text-underline-offset: 3px; }
-.colophon__brand { font-family: var(--font-serif); font-size: var(--fs-xl); margin: 0 0 var(--space-2); }
-.colophon__head { margin: 0 0 var(--space-2); font-size: var(--fs-xs); letter-spacing: .16em; color: #b9ad97; }
-.colophon__line { margin: 0; font-size: var(--fs-sm); color: #d9cfba; line-height: 1.9; }
-
-/* ---------- 响应式 ---------- */
-@media (max-width: 1279px) {
-  .page--wide { --maxw: 1100px; }
+/* 最后一行的「吸收器」：JS 按图片比例给每张写 flex-grow，
+   所以最后一行不满时会被拉成巨幅。加一个占位项把剩余空间吃掉，
+   图片就保持原本的尺度，整片看起来才像一本相册而不是拼贴。 */
+.flow::after {
+  content: "";
+  flex: 10000 1 0;
+  min-width: 0;
 }
-@media (max-width: 1023px) {
-  .masthead { min-height: auto; padding: var(--space-10) 0 var(--space-8); }
-  .masthead__lede, .masthead__plates { grid-column: 1 / -1; }
-  .masthead__plates { min-height: 300px; max-width: 520px; margin-top: var(--space-8); }
-  .masthead__desc { max-width: none; }
-  .toc__cell { padding: var(--space-4); }
-  .feature { grid-template-columns: 1fr; gap: var(--space-4); }
-  .trip-index { grid-template-columns: 1fr; }
-  .colophon__grid { grid-template-columns: 1fr 1fr; }
-}
-@media (max-width: 767px) {
-  .masthead__plates { display: none; }
-  .masthead__name { font-size: clamp(32px, 10vw, 44px); }
-  .toc { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; }
-  .toc__cell { flex: 0 0 78vw; scroll-snap-align: start; border-left: 1px solid var(--line); }
-  .head { grid-template-columns: auto 1fr; }
-  .head__more { grid-column: 2; grid-row: auto; text-align: left; }
-  .wall--mosaic .wall__item,
-  .wall--mosaic .wall__item:nth-child(12n+4),
-  .wall--mosaic .wall__item:nth-child(12n+8) { grid-column: span 6; }
-  .note-row { grid-template-columns: 1fr; gap: var(--space-1); }
-  .colophon__grid { grid-template-columns: 1fr; }
-  .strip__item { flex-basis: 160px; height: 120px; }
-  .band { padding: var(--space-10) 0; }
-  .band__inner { padding: 0 16px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .plate--main:hover { transform: rotate(1.2deg); }
-  .reveal { opacity: 1; transform: none; transition: none; }
-}
-
-/* ---------- 卡片即链接（首页旅程区改成 <a> 后需要） ---------- */
-a.feature, a.card--flat { color: inherit; text-decoration: none; }
-a.feature:focus-visible, a.card--flat:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-a.feature:hover .feature__title, a.card--flat:hover .card--flat__title { color: var(--accent-ink); }
-.feature__more {
-  margin: 10px 0 0;
-  font-size: var(--fs-sm);
-  color: var(--accent-ink);
-  letter-spacing: .06em;
-}
-
-/* ---------- 真实比例照片流（取代固定空洞的错版墙） ---------- */
-.flow { display: flex; flex-wrap: wrap; gap: 10px; }
+/* 空状态是 .flow 的直接子元素：在 flex 里必须自己占满一行，
+   否则会被压成一小块（原来只在 grid 容器里处理过这件事）。 */
+.flow > .section__text { flex: 1 0 100%; }
 .flow__item {
   flex: 1 1 auto;
   min-width: 150px;
   max-width: 100%;
   margin: 0;
-  background: #fffefb;
-  border: 1px solid var(--line);
   padding: 5px;
 }
 .flow__item img { display: block; width: 100%; height: auto; }
 .flow__item figcaption {
-  display: flex; justify-content: space-between; gap: 8px;
+  display: flex; justify-content: space-between; gap: var(--s2);
   padding: 6px 2px 1px;
-  font-size: var(--fs-xs); color: var(--muted);
+  font-family: var(--f-mono); font-size: 11px;
+  color: var(--mute); letter-spacing: .02em;
 }
-.flow__open { display: block; width: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; }
-.flow__open:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-/* ---------- 数据条（单次旅程顶部） ---------- */
-.stats-strip {
-  display: flex; flex-wrap: wrap; gap: 4px 34px;
-  margin: 6px 0 0; padding: 14px 0;
-  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+.flow__item figcaption span:first-child {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.stats-strip > div { display: flex; flex-direction: column; gap: 2px; }
-.stats-strip b { font-family: var(--font-serif); font-size: var(--fs-xl); font-weight: 600; line-height: 1.2; }
-.stats-strip span { font-size: var(--fs-xs); color: var(--muted); letter-spacing: .1em; }
-
-/* ---------- 按天分组 ---------- */
-.day-head { display: flex; align-items: baseline; gap: 12px; margin: 28px 0 12px; }
-.day-head__date { font-family: var(--font-serif); font-size: var(--fs-xl); font-weight: 600; }
-.day-head__line { flex: 1; border-top: 1px solid var(--line); }
-.day-head__count { font-size: var(--fs-xs); color: var(--muted); }
-
-/* ---------- 筛选条（相册页） ---------- */
-.filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0 6px; }
-.filters__item {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 5px 12px; border: 1px solid var(--line); border-radius: 999px;
-  font-size: var(--fs-sm); color: var(--muted); text-decoration: none;
+.flow__open {
+  display: block; width: 100%; padding: 0;
+  border: 0; background: none; cursor: zoom-in;
 }
-.filters__item b { font-weight: 600; color: var(--ink); }
-.filters__item:hover { border-color: var(--rule-strong); color: var(--ink); }
-.filters__item.is-on { border-color: var(--accent-ink); color: var(--accent-ink); }
-.filters__item.is-on b { color: var(--accent-ink); }
-.album__more { text-align: center; margin: 24px 0 0; }
-
-/* ---------- 年份 rail（旅程列表） ---------- */
-.rail { position: sticky; top: calc(var(--nav-h) + 18px); font-size: var(--fs-sm); }
-.rail__title { margin: 0 0 8px; font-size: var(--fs-xs); letter-spacing: .2em; color: var(--muted); }
-.rail a {
-  display: flex; justify-content: space-between; gap: 10px;
-  padding: 6px 0; color: var(--muted); text-decoration: none;
-  border-bottom: 1px solid var(--line);
+.flow__open img { transition: opacity .18s ease; }
+.flow__open:hover img { opacity: .9; }
+/* 焦点环画在整块图版上（图版内 img 会被 padding 裁掉描边） */
+.flow__item:focus-within {
+  border-color: var(--azur);
+  box-shadow: 0 0 0 2px var(--azur-wash);
 }
-.rail a:hover { color: var(--accent-ink); }
-.rail a b { font-weight: 600; }
+.flow__open:focus-visible { outline: none; }
 
-/* ---------- 日常照片出口 ---------- */
-.loose {
-  display: flex; align-items: center; gap: 14px;
-  margin-top: 28px; padding: 16px 18px;
-  border: 1px dashed var(--rule-strong); text-decoration: none; color: inherit;
+.wall__more-wrap { text-align: center; margin: var(--s5) 0 0; }
+
+/* ==========================================================================
+   版权页：全站唯一的深色区，用来「合上书」
+   ========================================================================== */
+
+.colophon {
+  background: var(--ink-deep);
+  color: var(--on-deep);
+  padding: clamp(44px, 5.6vw, 72px) 0 clamp(32px, 4vw, 48px);
 }
-.loose:hover { border-color: var(--accent-ink); }
-.loose__title { font-family: var(--font-serif); font-size: var(--fs-xl); font-weight: 600; }
-.loose__meta { flex: 1; font-size: var(--fs-sm); color: var(--muted); }
+.colophon__grid {
+  display: grid;
+  grid-template-columns: 2fr 1.2fr 1.7fr 1.2fr;
+  gap: var(--s5) clamp(20px, 3vw, 40px);
+}
+.colophon a {
+  color: var(--azur-light);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(141, 184, 198, .45);
+}
+.colophon a:hover { text-decoration-color: currentColor; }
+.colophon__brand {
+  font-size: var(--t-4);
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--on-deep);
+  margin: 0 0 var(--s2);
+}
+.colophon__head {
+  margin: 0 0 var(--s2);
+  font-family: var(--f-mono); font-size: 11px;
+  letter-spacing: .16em;
+  color: var(--on-deep-3);
+}
+.colophon__line {
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--on-deep-2);
+  line-height: 1.95;
+  word-break: keep-all;     /* 「关于」别被拆成两行两个字 */
+  overflow-wrap: anywhere;
+}
 
-@media (max-width: 767px) { .rail { display: none; } }
+/* ==========================================================================
+   响应式
+   ========================================================================== */
+
+@media (max-width: 1099px) {
+  .masthead { min-height: auto; }
+  .masthead__plates { min-height: 340px; }
+}
+
+@media (max-width: 1023px) {
+  .masthead { padding: var(--s7) 0 var(--s6); }
+  .masthead__lede,
+  .masthead__plates { grid-column: 1 / -1; }
+  .masthead__desc { max-width: 46ch; }
+  .masthead__plates {
+    min-height: 300px;
+    max-width: 480px;
+    margin-top: var(--s6);
+    padding-bottom: 28px;
+  }
+  .feature { grid-template-columns: 1fr; gap: var(--s4); }
+  .feature__summary { max-width: none; }
+  .trip-index { grid-template-columns: 1fr; }
+  .colophon__grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 767px) {
+  /* 手机上不摆三张纸：错位的相纸在小屏只会变成一堆切边 */
+  .masthead__plates { display: none; }
+  .head { grid-template-columns: 1fr; gap: var(--s1); }
+  .head__more { grid-column: 1; grid-row: 3; text-align: left; padding-top: var(--s1); }
+  /* 目录条：横滑，一格占 80% 宽，露出下一格的头，暗示可以滑 */
+  .toc {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .toc::-webkit-scrollbar { display: none; }
+  .toc__cell { flex: 0 0 78%; scroll-snap-align: start; min-height: 92px; }
+  .colophon__grid { grid-template-columns: 1fr; gap: var(--s5); }
+  .strip__item { flex-basis: 158px; height: 118px; }
+  .flow { gap: 8px; }
+  /* 手机上两列：JS 写的是 flex-basis: 比例×190，一个字大约 250px，只能排下一张。
+     这里用 !important 压掉行内样式，改成 46% 的两列，行尾的剩余空间由 ::after 吃掉。 */
+  .flow__item { padding: 4px; flex-basis: 46% !important; }
+  .flow__item figcaption { font-size: 10px; }
+}
+
+@media (max-width: 480px) {
+  .masthead__stats b { font-size: var(--t-4); }
+  .feature__mini img { width: 60px; height: 60px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plate--main:hover { transform: rotate(1.1deg); }
+  .toc__cell:hover .toc__arrow { transform: none; }
+}
