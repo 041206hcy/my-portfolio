@@ -402,7 +402,7 @@ img{max-width:100%;height:auto;display:block}
 .logitem:hover{background:#fbf9f4}
 .logitem__d{font-size:.76rem;letter-spacing:.04em;color:var(--muted);padding-top:2px}
 .logitem__b{min-width:0}
-.logitem__fig{display:block;margin:0 0 12px;border:1px solid var(--line);overflow:hidden;background:#f0ede5}
+.logitem__fig{display:block;margin:0 0 12px;max-width:min(100%,560px);border:1px solid var(--line);overflow:hidden;background:#f0ede5}
 .logitem__fig img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}
 .logitem__t{margin:0;font-size:1.18rem;font-weight:650;letter-spacing:-.01em}
 .logitem__x{margin:6px 0 0;color:var(--ink-2);line-height:1.75}
