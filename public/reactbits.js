@@ -141,21 +141,23 @@
       s.className = 'rb-blurtext__piece';
       s.setAttribute('aria-hidden', 'true');
       s.textContent = pieces[i];
-      if (pieces[i] === '\u00A0') { s.style.opacity = '1'; s.style.filter = 'none'; s.style.transform = 'none'; }
+      if (pieces[i] === '\u00A0') { s.className += ' rb-blurtext__piece--static'; }
       else {
         s.style.transitionDelay = (i * delay) + 'ms';
         s.style.transitionDuration = stepDur + 's';
-        s.style.filter = 'blur(' + blur + 'px)';
-        if (direction === 'top') s.style.transform = 'translateY(-' + distance + 'px)';
-        else if (direction === 'bottom') s.style.transform = 'translateY(' + distance + 'px)';
-        else s.style.transform = 'translateY(' + distance + 'px)';
+        // 只喂参数、不写初始态：初始态在 reactbits.css，.is-in 才盖得住（行内样式会赢过类）
+        s.style.setProperty('--rb-blur', blur + 'px');
+        s.style.setProperty('--rb-dist', (direction === 'top' ? -distance : distance) + 'px');
       }
       frag.appendChild(s);
     }
     el.appendChild(frag);
 
     el.style.filter = ''; // 清掉可能的内联值
-    inView(el, function () { el.classList.add('is-in'); }, 0.1);  // 默认 threshold=0.1
+    var reveal = function () { el.classList.add('is-in'); };
+    inView(el, reveal, 0.1);  // 默认 threshold=0.1
+    // 兜底：观察器万一不触发（隐藏容器、旧内核），1.5 秒后也把标题显出来
+    window.setTimeout(reveal, 1500);
   }
 
   /* ================= GlareHover（streak） ================= */
