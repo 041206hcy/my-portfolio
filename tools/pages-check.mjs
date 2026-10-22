@@ -13,6 +13,7 @@ const PAGES = [
   '/travel/journey',
   '/travel/photos',
   '/travel/map',
+  '/search',
   '/notes',
   '/about',
   '/admin',
