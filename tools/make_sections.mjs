@@ -17,11 +17,26 @@ const NAV = `<header class="nav" id="top">
       <a href="/work">作品</a>
       <a href="/media">书影音</a>
       <a href="/skill">技能</a>
-      <a href="/journeys">旅行</a>
+      <a href="/travel">旅行</a>
+      <a href="/search">搜索</a>
       <a href="/about">关于</a>
     </nav>
   </div>
 </header>`;
+
+const TOOLBAR = `  <div class="toolbar">
+    <nav class="filters" id="filters" aria-label="标签筛选"></nav>
+    <div class="viewtoggle" id="viewtoggle" role="group" aria-label="视图切换"></div>
+  </div>
+
+  <div class="yearbar" id="yearbar" aria-label="按年份筛选" hidden></div>`;
+
+const SEARCHFORM = `  <form class="search" id="search" role="search">
+    <input type="search" id="q" placeholder="在这一块里搜……" aria-label="在这一块里搜索">
+    <button class="btn btn--small" type="submit">搜索</button>
+    <span class="label count" id="count"></span>
+    <div class="suggest" id="suggest" hidden></div>
+  </form>`;
 
 const COLOPHON = `  <footer class="colophon">
     <span>© 2026 黄翀与 · <a href="${SITE}/">shackle0412.vip</a></span>
@@ -116,13 +131,9 @@ ${NAV}
     <p>${s.desc}</p>
   </section>
 
-  <nav class="filters" id="filters" aria-label="标签筛选"></nav>
+  ${TOOLBAR}
 
-  <form class="search" id="search" role="search">
-    <input type="search" id="q" placeholder="在这一块里搜……" aria-label="在这一块里搜索">
-    <button class="btn btn--small" type="submit">搜索</button>
-    <span class="label count" id="count"></span>
-  </form>
+${SEARCHFORM}
 
   <section class="plist" id="list"></section>
 
@@ -165,6 +176,52 @@ ${SCRIPTS}
 `;
 }
 
+function searchPage() {
+  const desc = '全站检索：按关键词、板块、标签或年份，找黄翀与写过的记录与笔记。';
+  return `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+${head({
+    title: '搜索 · 黄翀与',
+    desc,
+    kw: '搜索,检索,标签,年表,黄翀与',
+    canonical: `${SITE}/search`,
+  })}
+</head>
+<body data-page="search">
+
+${NAV}
+
+<main class="wrap" id="main">
+
+  <section class="page-head">
+    <p class="label">Search · 全站检索</p>
+    <h1>搜索</h1>
+    <p>标题、摘要、标签都在这里；按板块、标签或年份收窄。</p>
+  </section>
+
+${SEARCHFORM}
+
+  <div class="toolbar">
+    <nav class="filters" id="sc-sections" aria-label="板块筛选"></nav>
+    <div class="viewtoggle" id="viewtoggle" role="group" aria-label="视图切换"></div>
+  </div>
+
+  <div class="tagcloud" id="tagcloud" aria-label="标签云"></div>
+
+  <div class="yearbar" id="yearbar" aria-label="按年份筛选" hidden></div>
+
+  <section class="plist" id="list"></section>
+
+${COLOPHON}
+</main>
+
+${SCRIPTS}
+</body>
+</html>
+`;
+}
+
 const written = [];
 for (const s of SECTIONS) {
   const p = join(ROOT, `${s.key}.html`);
@@ -174,6 +231,10 @@ for (const s of SECTIONS) {
 const pp = join(ROOT, 'post.html');
 writeFileSync(pp, postPage(), 'utf8');
 written.push(pp);
+
+const sp = join(ROOT, 'search.html');
+writeFileSync(sp, searchPage(), 'utf8');
+written.push(sp);
 
 for (const p of written) console.log('written ' + p);
 console.log(`共 ${written.length} 个页面外壳`);
