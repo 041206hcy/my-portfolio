@@ -3,216 +3,133 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>关于 · 黄翀与的旅程</title>
-<meta name="description" content="黄翀与：浙江农林大学环境与资源学院，地理信息科学。研究方向是机载 LiDAR 与多光谱影像的特征级融合、森林参数反演。">
+<title>关于我 · 黄翀与</title>
+<meta name="description" content="黄翀与，浙江农林大学环境与资源学院地理信息科学。做机载 LiDAR 点云处理、多光谱遥感、杉木人工林蓄积量 XGBoost 反演与无人机实景三维。这里是我做过什么、会什么、怎么联系我。">
+<meta name="keywords" content="黄翀与,地理信息科学,机载LiDAR,多光谱遥感,杉木人工林,蓄积量估测,XGBoost,点云,无人机测绘,实景三维">
+<meta name="author" content="黄翀与">
 <link rel="canonical" href="https://shackle0412.vip/about">
-<meta name="theme-color" content="#f2f3ee">
-<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="layout.css">
-<link rel="stylesheet" href="page.css">
+<meta property="og:type" content="profile">
+<meta property="og:title" content="关于我 · 黄翀与">
+<meta property="og:description" content="机载 LiDAR、多光谱遥感与森林蓄积量反演；做过什么、会什么、怎么联系。">
+<meta property="og:url" content="https://shackle0412.vip/about">
+<meta property="og:image" content="https://shackle0412.vip/assets/og-cover.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/b.css">
+<link rel="stylesheet" href="/reactbits.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "黄翀与",
+  "url": "https://shackle0412.vip/about",
+  "affiliation": { "@type": "CollegeOrUniversity", "name": "浙江农林大学 环境与资源学院" },
+  "knowsAbout": ["地理信息科学", "机载 LiDAR", "多光谱遥感", "森林蓄积量估测", "无人机实景三维", "Python"],
+  "sameAs": ["https://github.com/041206hcy"]
+}
+</script>
 </head>
-<body class="page--wide" data-page="about">
-
-<a class="skip" href="#main">跳到主内容</a>
+<body data-page="about">
 
 <header class="nav" id="top">
-  <a class="nav__brand" href="/">黄翀与的旅程</a>
-  <nav class="nav__links" aria-label="主导航">
-    <a href="/journeys">旅程</a>
-    <a href="/map">地图</a>
-    <a href="/photos">照片</a>
-    <a href="/notes">笔记</a>
-    <a href="/about" aria-current="page">关于</a>
-  </nav>
+  <div class="wrap nav__in">
+    <a class="nav__brand" href="/">黄翀与</a>
+    <nav class="nav__links" aria-label="主导航">
+      <a href="/life">生活</a>
+      <a href="/learn">学习</a>
+      <a href="/work">作品</a>
+      <a href="/media">书影音</a>
+      <a href="/skill">技能</a>
+      <a href="/journeys">旅行</a>
+      <a href="/about">关于</a>
+    </nav>
+  </div>
 </header>
 
-<main id="main">
+<main class="wrap" id="main">
 
-  <div class="page-head">
-    <p class="page-head__kicker">关于这个站，也关于我</p>
-    <h1 class="page-head__title">黄翀与</h1>
-    <p class="page-head__desc">
-      浙江农林大学环境与资源学院在读，地理信息科学方向。
-      把<strong>机载 LiDAR 点云</strong>与<strong>多光谱影像</strong>融到一起，
-      用机器学习反演杉木人工林的蓄积量，并做无人机实景三维的成果表达。
-    </p>
-    <p class="page-head__meta">
-      <span><b>2019—2026</b> 记录年份</span>
-      <span>LiDAR · 遥感 · 森林资源定量估测</span>
-    </p>
+  <section class="page-head">
+    <p class="label">About · 黄翀与</p>
+    <h1>关于我</h1>
+    <p>浙江农林大学环境与资源学院，地理信息科学。把点云、影像和森林里的树，算成能写进论文的数。</p>
+  </section>
+
+  <div class="band" data-rb="reveal">
+    <span class="label">我在做什么</span>
+    <span class="band__note">现在</span>
   </div>
+  <section class="about-grid" data-rb="reveal">
+    <div class="about-body">
+      <p>本科在读，方向是把<strong>机载 LiDAR 点云</strong>与<strong>多光谱影像</strong>融到一起，用机器学习反演杉木人工林的蓄积量。毕业论文的题目是《融合机载 LiDAR 与多光谱的杉木人工林蓄积量 XGBoost 估测研究》，指导老师是王懿祥教授。</p>
+      <p>真正花时间的不是模型，是模型前面那一段：一次外业、两套载荷、三次质检、一份真值。样地每木检尺、像控点两次独立观测、点云归一化到同一基准面、特征矩阵不泄漏——这些做不干净，R² 再好看也没意义。</p>
+      <p>也做无人机实景三维：从航高与 GSD 反算、仿地飞行、空三与密集匹配，到点云分类和成果表达。这些过程我尽量写下来，错了的地方也写。</p>
+    </div>
+    <aside class="about-side">
+      <dl class="facts">
+        <div><dt>学校</dt><dd>浙江农林大学</dd></div>
+        <div><dt>学院</dt><dd>环境与资源学院</dd></div>
+        <div><dt>专业</dt><dd>地理信息科学</dd></div>
+        <div><dt>方向</dt><dd>LiDAR · 遥感 · 森林定量估测</dd></div>
+        <div><dt>常驻</dt><dd>浙江 · 杭州临安</dd></div>
+        <div><dt>联系</dt><dd><a href="mailto:3077645837@qq.com">3077645837@qq.com</a></dd></div>
+      </dl>
+    </aside>
+  </section>
 
-  <!-- ---------- 简介 ---------- -->
-  <section class="band band--tight" id="about" style="padding-top:var(--s5)">
-    <div class="sheet">
-      <div class="c-7">
-        <p>
-          比起「跑通一个模型」，我更在意一件事：<strong>这条精度曲线背后，林地到底长什么样</strong>。
-          所以我的工作基本长在野外样地和点云之间——外业测回来的每一棵样木，
-          最终都要能在模型里找到它的位置。
-        </p>
-        <p>
-          目前关注：森林参数遥感反演、LiDAR 与光学影像的特征级融合、
-          空间交叉验证的可靠性问题，以及三维成果的可视化表达。
-        </p>
-        <p>
-          这个站是上面这些事之外的另一半：走到哪儿拍到哪儿，
-          照片标上坐标收进地图，路线上攒够一趟，就归成一次旅程。
-        </p>
-      </div>
-      <div class="c-5">
-        <!-- 事实表：像图幅边上的图例栏，一列名一列值，全部靠线分隔 -->
-        <dl class="facts">
-          <div><dt>学校</dt><dd>浙江农林大学 · 环境与资源学院</dd></div>
-          <div><dt>方向</dt><dd>地理信息科学 · 森林资源定量估测</dd></div>
-          <div><dt>做什么</dt><dd>点云与影像的特征级融合、蓄积量反演</dd></div>
-          <div><dt>常用</dt><dd>Python / XGBoost / QGIS / CloudCompare</dd></div>
-          <div><dt>邮箱</dt><dd><a href="mailto:3077645837@qq.com">3077645837@qq.com</a></dd></div>
-          <div><dt>GitHub</dt><dd><a href="https://github.com/041206hcy" target="_blank" rel="noopener">github.com/041206hcy</a></dd></div>
-        </dl>
-      </div>
+  <div class="band" data-rb="reveal">
+    <span class="label">做过什么</span>
+    <span class="band__note">时间线</span>
+  </div>
+  <section class="tl" data-rb="reveal">
+    <div class="tl__row">
+      <span class="tl__d">2025.11 — 2026.3</span>
+      <span class="tl__b"><b>毕业论文研究阶段</b>样地设计与外业、点云与影像预处理、特征矩阵构建、蓄积量反演与精度评价。</span>
+    </div>
+    <div class="tl__row">
+      <span class="tl__d">2026</span>
+      <span class="tl__b"><b>无人机实景测绘</b>一次外业、两套载荷、三次质检、一份真值；七阶段作业链与 EPSG:4547 成果。</span>
+    </div>
+    <div class="tl__row">
+      <span class="tl__d">2026.10</span>
+      <span class="tl__b"><b>这个站点</b>零构建静态站，Cloudflare Workers + D1，照片地图、旅程轨迹与后台内容编辑器都是自己写的。</span>
+    </div>
+    <div class="tl__row">
+      <span class="tl__d">进行中</span>
+      <span class="tl__b"><b>把学到的东西写下来</b>课程笔记、读书摘录、代码与踩坑，都放在 <a href="/learn">学习笔记</a> 里。</span>
     </div>
   </section>
 
-  <!-- ---------- 项目 ---------- -->
-  <section class="band" id="projects">
-    <header class="head">
-      <h2 class="head__title">项目</h2>
-      <p class="head__sub">三段都在做同一件事：把野外的树变成可算的数。</p>
-      <span class="head__more">3 项</span>
-    </header>
-
-    <article class="entry">
-      <p class="entry__side">2025.11 —<br>2026.05</p>
-      <div>
-        <h3 class="entry__title">融合机载 LiDAR 与多光谱的杉木人工林蓄积量 XGBoost 估测</h3>
-        <p class="entry__body">
-          以机载 LiDAR 点云与多光谱影像为数据源，构建样地级特征集，建立杉木人工林蓄积量反演模型。
-          <strong>特征：</strong>高度分位数与离散度（H_mean / H_p95 / H_cv）、冠层覆盖度与回波比（CC_ratio、D1 / D5_ratio）、
-          冠层结构（Gini、FHD、LAI_p95）、多光谱指数（NDVI、NGRDI、TGI）与纹理（Tex_var、Tex_Hom）。
-          <strong>建模：</strong>VIF 共线性剔除 + Boruta / RFE 特征选择 → XGBoost；用分层 k 折与空间块交叉验证
-          避免空间自相关导致的信息泄漏，并与多元线性回归、随机森林对照。
-          <strong>评价与解释：</strong>R² / RMSE / MAE / rRMSE 配合残差空间诊断，最后用 SHAP 给出各特征的贡献方向与量级。
-        </p>
-        <ul class="tags">
-          <li>机载 LiDAR</li><li>多光谱</li><li>XGBoost</li><li>空间块交叉验证</li><li>SHAP</li>
-        </ul>
-      </div>
-    </article>
-
-    <article class="entry">
-      <p class="entry__side">2025 —<br>2026</p>
-      <div>
-        <h3 class="entry__title">无人机航测与实景三维建模</h3>
-        <p class="entry__body">
-          <strong>思路：</strong>一次外业、两套载荷、三次质检、一份真值——同一架次同时完成 LiDAR 与多光谱数据获取，
-          把时相差异压到最小。
-          <strong>作业链：</strong>航线规划（由成果 GSD 与点密度反算相对航高）→ 像控与检查点 → 仿地飞行 → 空三加密 →
-          密集匹配 → 点云分类与 CHM 生产 → 精度检核，共 7 个阶段；像控点与检查点各自独立观测两次（间隔 ≥60 min）核验几何精度。
-          <strong>产出：</strong>去噪并分类后的 LAZ 点云、DEM / DTM、归一化点云与 0.5–1 m 的 CHM、
-          正射影像与实景三维模型，统一到同一坐标系（EPSG:4547）的规则网格上，供特征提取直接使用。
-        </p>
-        <ul class="tags">
-          <li>无人机航测</li><li>倾斜摄影</li><li>空三加密</li><li>CHM</li><li>实景三维</li>
-        </ul>
-      </div>
-    </article>
-
-    <article class="entry">
-      <p class="entry__side">2025 —<br>2026</p>
-      <div>
-        <h3 class="entry__title">样地调查数据处理与建模标签生产</h3>
-        <p class="entry__body">
-          <strong>每木检尺：</strong>逐株记录方位角、水平距、胸径、树高、冠幅与枝下高，按杉木二元立木材积式
-          （V = a·D<sup>b</sup>·H<sup>c</sup>）计算单株材积与断面积。
-          <strong>样地汇总：</strong>按样地统计株数、断面积、平均胸径 / 树高与优势高，换算每公顷断面积与
-          每公顷蓄积量，作为建模真值。
-          <strong>质量控制：</strong>样地因子表与每木检尺表联动校验、异常值检查，最终输出「样地—特征矩阵」
-          （末列为真值与建模集标记），直接对接建模环节。
-        </p>
-        <ul class="tags">
-          <li>每木检尺</li><li>材积计算</li><li>异常值检查</li><li>样地—特征矩阵</li>
-        </ul>
-      </div>
-    </article>
+  <div class="band" data-rb="reveal">
+    <span class="label">会什么</span>
+    <a class="band__note" href="/skill">完整清单 →</a>
+  </div>
+  <section class="chips" data-rb="reveal">
+    <a class="chip" href="/skill?tag=LiDAR">机载 LiDAR 点云处理</a>
+    <a class="chip" href="/skill?tag=遥感">多光谱与遥感指数</a>
+    <a class="chip" href="/skill?tag=机器学习">XGBoost 与特征选择</a>
+    <a class="chip" href="/skill?tag=无人机">无人机测绘与空三</a>
+    <a class="chip" href="/skill?tag=Python">Python 数据处理</a>
+    <a class="chip" href="/skill?tag=三维">实景三维与可视化</a>
   </section>
 
-  <!-- ---------- 技能 ---------- -->
-  <section class="band band--soft band--bleed" id="skills">
-    <div class="band__inner">
-      <header class="head">
-        <h2 class="head__title">技能</h2>
-        <p class="head__sub">按「拿到数据之后先做什么」排序，不按熟练度排。</p>
-        <span class="head__more">工具与流程</span>
-      </header>
-      <div class="skills">
-        <div class="skills__group">
-          <h4>数据与建模</h4>
-          <ul class="tags">
-            <li>Python</li><li>scikit-learn</li><li>XGBoost</li><li>SHAP</li><li>pandas / numpy</li>
-          </ul>
-        </div>
-        <div class="skills__group">
-          <h4>遥感与点云</h4>
-          <ul class="tags">
-            <li>LiDAR 点云处理</li><li>CHM / 高度分位数</li><li>多光谱指数</li>
-            <li>CloudCompare</li><li>QGIS</li>
-          </ul>
-        </div>
-        <div class="skills__group">
-          <h4>测绘与可视化</h4>
-          <ul class="tags">
-            <li>无人机倾斜摄影</li><li>实景三维建模</li><li>ArcGIS</li><li>成果制图</li>
-          </ul>
-        </div>
-      </div>
-    </div>
+  <div class="band" data-rb="reveal">
+    <span class="label">联系我</span>
+    <span class="band__note">别客气</span>
+  </div>
+  <section class="acts" data-rb="reveal" style="margin-top:18px">
+    <a class="btn btn--key" href="mailto:3077645837@qq.com">3077645837@qq.com</a>
+    <a class="btn" href="https://github.com/041206hcy" target="_blank" rel="noopener">GitHub ↗</a>
+    <a class="btn" href="/journeys">我在哪拍过</a>
   </section>
+  <p class="hint">课程、科研、数据或测绘上的问题都可以写信；愿意一起做点东西也行。</p>
 
-  <!-- ---------- 联系 ---------- -->
-  <section class="band" id="contact">
-    <header class="head">
-      <h2 class="head__title">联系</h2>
-      <p class="head__sub">邮件最快，GitHub 上能看到代码。</p>
-      <span class="head__more">shackle0412.vip</span>
-    </header>
-    <dl class="facts facts--wide">
-      <div><dt>邮箱</dt><dd><a href="mailto:3077645837@qq.com">3077645837@qq.com</a></dd></div>
-      <div><dt>GitHub</dt><dd><a href="https://github.com/041206hcy" target="_blank" rel="noopener">github.com/041206hcy</a></dd></div>
-      <div><dt>本站</dt><dd><a href="/">shackle0412.vip</a> · 静态站，托管于 Cloudflare</dd></div>
-    </dl>
-  </section>
-
-  <footer class="colophon band--bleed">
-    <div class="band__inner colophon__grid">
-      <div>
-        <p class="colophon__brand">黄翀与的旅程</p>
-        <p class="colophon__line">走到哪儿，拍到哪儿。照片与文字均为本人拍摄整理。</p>
-      </div>
-      <div>
-        <p class="colophon__head">这一页</p>
-        <p class="colophon__line">关于 · 项目 · 技能 · 联系</p>
-      </div>
-      <div>
-        <p class="colophon__head">栏目</p>
-        <p class="colophon__line">
-          <a href="/journeys">旅程</a> · <a href="/map">地图</a> ·
-          <a href="/photos">照片</a> · <a href="/notes">笔记</a>
-        </p>
-      </div>
-      <div>
-        <p class="colophon__head">站点</p>
-        <p class="colophon__line">
-          <a href="https://shackle0412.vip/">shackle0412.vip</a><br>
-          © <span id="year">2026</span> 黄翀与<br>
-          <a href="#top">回到顶部 ↑</a>
-        </p>
-      </div>
-    </div>
+  <footer class="colophon">
+    <span>© 2026 黄翀与 · <a href="https://shackle0412.vip/">shackle0412.vip</a></span>
+    <span><a href="/sitemap.xml">Sitemap</a> · <a href="/admin">管理</a></span>
   </footer>
-
 </main>
-<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+
+<script src="/reactbits.js"></script>
+<script src="/content.js"></script>
 </body>
 </html>
