@@ -220,7 +220,8 @@
 @media (min-width: 1024px) {
   .masthead--bare::after {
     content: "";
-    position: absolute; inset: 0 0 0 auto;
+    /* 底部留 96px：别让格网压到刊头底部那条元信息线与文字上 */
+    position: absolute; inset: 0 0 96px auto;
     width: 34%;
     border: 0;
     background-image:
