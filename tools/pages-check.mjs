@@ -4,16 +4,16 @@ const BASE = process.env.BASE || 'http://127.0.0.1:8787';
 
 const PAGES = [
   '/',
-  '/journeys.html',
-  '/journey.html',
-  '/photos.html',
-  '/map.html',
-  '/notes.html',
+  '/journeys',
+  '/journey',
+  '/photos',
+  '/map',
+  '/notes',
   '/about',
   '/admin',
+  '/notes/cloudflare-deploy',
+  '/notes/lidar-to-feature-matrix',
   '/404.html',
-  '/notes/cloudflare-deploy.html',
-  '/notes/lidar-to-feature-matrix.html',
 ];
 
 const SKIP = /^(https?:|mailto:|tel:|#|data:|javascript:)/i;
