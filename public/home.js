@@ -327,6 +327,136 @@
     }
   };
 
+  /* ---------------- 这一期的文字（站点级，存在 settings 表里） ----------------
+     没写过的位置用内置默认：站点刚上线、照片还没有的时候，首页也不该是一片空白。 */
+  const COPY_DEFAULT = {
+    issue_note: '这个站刚开始。第一批照片还在硬盘里，等它们传上来、标好位置，这一页会自己长出年表、地点索引和地图上的点。\n把话说在前面：这里只放我拍的照片，按地点和时间铺开，攒够一趟就归成一次旅程。',
+    method: '照片只存网页尺寸 —— 缩略图长边 400px、网页图长边 1600px，都是 WebP。原图留在硬盘里不上云，所以这个站能一直免费跑下去。\n照片传上来先读 EXIF 里的拍摄时间和坐标；没有坐标的落进「待标点」，在管理页地图上点一下、写个地名，一次能标一批。\n攒够一趟就归成一次旅程：一趟一个名字、一段起止日期，点进去是按天分组的那几天。',
+    footer: '走到哪儿，拍到哪儿。照片与文字均为本人拍摄整理。',
+    sidenotes: ['照片只存网页尺寸，原图不上云。', '没有 GPS 的照片在管理页手动标点。', '一趟旅程 = 名字 + 起止日期 + 一组照片。'],
+  };
+
+  const paras = (text) => String(text || '').split(/\n+/).map((s) => s.trim()).filter(Boolean)
+    .map((s) => `<p>${esc(s)}</p>`).join('');
+
+  // 双态：照片还少的时候是「创刊号」，够三张了才切成正常的一期
+  const isFirstIssue = (photos) => photos.length < 3;
+
+  const renderIssue = (copy, photos) => {
+    const first = isFirstIssue(photos);
+    document.body.classList.toggle('is-first-issue', first);
+    const kicker = $('issue-kicker');
+    if (kicker) kicker.textContent = first ? '创刊号' : `本期 · ${new Date().getFullYear()}`;
+    const mastKicker = document.querySelector('.masthead .kicker');
+    if (mastKicker && first) mastKicker.textContent = `创刊号 · ${new Date().getFullYear()}`;
+    const note = $('issue-note');
+    if (note) note.innerHTML = paras(copy.issue_note || COPY_DEFAULT.issue_note);
+    const side = $('sidenotes');
+    if (!side) return;
+    const list = (copy.sidenotes && copy.sidenotes.length) ? copy.sidenotes : COPY_DEFAULT.sidenotes;
+    side.innerHTML = list.map((s) => `<p class="sidenote">${esc(s)}</p>`).join('');
+  };
+
+  // 跨页图版：挑一张最「横」的照片当主图（横图才撑得住跨页），配一句说明
+  const renderSpread = (photos, trips) => {
+    const host = $('spread');
+    if (!host) return;
+    const withImg = photos.filter((p) => p.key_web && p.width && p.height);
+    host.hidden = false;
+    if (!withImg.length) {
+      host.innerHTML = `
+        <div class="spread__blank">
+          <p class="spread__blank-no">图版 01</p>
+          <p class="spread__blank-text">这一期还没有主图。传上第一批照片之后，这里会放一张最横的，配一段说明。</p>
+        </div>
+        <figcaption class="spread__cap">空着也是一种说法 —— 创刊号先把版式立起来，内容随后到。</figcaption>`;
+      return;
+    }
+    const pick = withImg.slice().sort((a, b) => (b.width / b.height) - (a.width / a.height))[0];
+    const trip = trips.find((t) => t.id === pick.trip_id);
+    const meta = [pick.place || '', fmtDate(pick.shot_at) || '', trip ? trip.title : ''].filter(Boolean).join(' · ');
+    host.innerHTML = `
+      <button class="spread__open" type="button" data-web="${esc(pick.key_web)}" data-cap="${esc(pick.caption || pick.place || '')}" aria-label="查看大图：${esc(pick.caption || pick.place || '旅行照片')}">
+        <img src="${esc(imgSrc(pick.key_web))}" alt="${esc(pick.caption || pick.place || '旅行照片')}" loading="lazy">
+      </button>
+      <figcaption class="spread__cap">
+        ${meta ? `<span class="spread__cap-meta">${esc(meta)}</span>` : ''}
+        ${pick.caption ? `<span class="spread__cap-text">${esc(pick.caption)}</span>` : ''}
+      </figcaption>`;
+  };
+
+  // 年表：把旅程按年份摞成一条轴；空站时它就是一句「等待第一批」
+  const renderYears = (trips) => {
+    const host = $('trip-years');
+    if (!host) return;
+    const byYear = new Map();
+    for (const t of trips) {
+      const y = String(t.start_date || '').slice(0, 4) || '未标日期';
+      byYear.set(y, (byYear.get(y) || 0) + 1);
+    }
+    if (!byYear.size) {
+      host.innerHTML = '<p class="years__empty">还没有年份可排 —— 第一趟旅程建起来之后，这里会长出一条时间轴。</p>';
+      return;
+    }
+    host.innerHTML = Array.from(byYear.entries())
+      .sort((a, b) => String(b[0]).localeCompare(String(a[0])))
+      .map(([y, n]) => `<span class="years__item"><b>${esc(y)}</b><span>${n} 次</span></span>`)
+      .join('');
+  };
+
+  // 地点索引：地点 → 张数，点一下把地图飞过去
+  const renderPlaces = (photos) => {
+    const host = $('place-index');
+    if (!host) return;
+    const pinned = photos.filter((p) => p.lat !== null && p.lng !== null && p.place);
+    const byPlace = new Map();
+    for (const p of pinned) {
+      const cur = byPlace.get(p.place) || { n: 0, lat: p.lat, lng: p.lng };
+      cur.n += 1;
+      byPlace.set(p.place, cur);
+    }
+    const loose = photos.filter((p) => p.lat === null || p.lng === null).length;
+    if (!byPlace.size) {
+      host.innerHTML = `<p class="place-index__empty">还没有标好位置的照片${loose ? `（另有 ${loose} 张在待标点）` : ''}。标好之后，地点会在这里列成一条。<br><a href="/admin">去管理页标点 →</a></p>`;
+      return;
+    }
+    const rows = Array.from(byPlace.entries()).sort((a, b) => b[1].n - a[1].n);
+    host.innerHTML = `<p class="place-index__head">地点 · ${rows.length} 处</p>`
+      + rows.map(([place, v]) => `<button class="place-index__row" type="button" data-fly="${v.lat},${v.lng}">
+        <span class="place-index__name">${esc(place)}</span>
+        <span class="place-index__n">${v.n}</span>
+      </button>`).join('');
+  };
+  document.addEventListener('click', (e) => {
+    const hit = e.target.closest ? e.target.closest('[data-fly]') : null;
+    if (!hit) return;
+    const parts = String(hit.dataset.fly).split(',').map(Number);
+    if (!Number.isFinite(parts[0]) || !Number.isFinite(parts[1])) return;
+    if (!ensureMap() || !map) return;
+    map.flyTo([parts[0], parts[1]], 11);
+  });
+
+  // 方法卡：正文是你写的，右边那栏数字是算出来的
+  const renderMethod = (copy, photos, stats) => {
+    const body = $('method-body');
+    if (body) body.innerHTML = paras(copy.method || COPY_DEFAULT.method);
+    const aside = $('method-aside');
+    if (!aside) return;
+    const places = new Set(photos.filter((p) => p.place).map((p) => p.place)).size;
+    const years = Array.from(new Set(photos.map((p) => String(p.shot_at || '').slice(0, 4)).filter(Boolean)))
+      .map(Number).sort((a, b) => a - b);
+    const span = years.length ? (years[0] === years[years.length - 1] ? String(years[0]) : `${years[0]}–${years[years.length - 1]}`) : '—';
+    aside.innerHTML = `
+      <p class="method-card__no">这一期</p>
+      <dl class="method-card__stats">
+        <div><dt>照片</dt><dd>${stats.photos || 0}</dd></div>
+        <div><dt>已定位</dt><dd>${stats.pinned || 0}</dd></div>
+        <div><dt>地点</dt><dd>${places}</dd></div>
+        <div><dt>旅程</dt><dd>${stats.trips || 0}</dd></div>
+        <div><dt>年份</dt><dd>${esc(span)}</dd></div>
+      </dl>`;
+  };
+
   /* ---------------- 主流程 ---------------- */
   (async () => {
     let data;
@@ -344,6 +474,13 @@
     const photos = data.photos || [];
     const trips = data.trips || [];
     const stats = data.stats || {};
+    const copy = data.copy || {};
+
+    // 后台写过的导语/页脚覆盖内置文案；没写过就保持 HTML 里的原话
+    const descEl = document.querySelector('.masthead__desc');
+    if (descEl && copy.lede) descEl.textContent = copy.lede;
+    const footEl = document.querySelector('.colophon__line');
+    if (footEl && copy.footer) footEl.textContent = copy.footer;
 
     // stats.pinned 是「已定位的照片数」，不是地点数 —— 地点数由地图那行去算
     $('stats').innerHTML = [
@@ -362,10 +499,15 @@
       `${stats.photos || 0} 张照片 · ${stats.pinned || 0} 张有坐标 · ${stats.trips || 0} 次旅程`;
 
     renderMasthead(photos, stats);
+    renderIssue(copy, photos);
+    renderSpread(photos, trips);
     renderFeature(trips, photos);
     renderTripIndex(trips, photos);
+    renderYears(trips);
     renderStrip(photos);
     drawMap(photos);
+    renderPlaces(photos);
+    renderMethod(copy, photos, stats);
     drawWall(photos);
   })();
 })();
