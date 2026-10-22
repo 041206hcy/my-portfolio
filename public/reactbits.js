@@ -410,17 +410,87 @@
     });
   }
 
+  /* ================= 卡片悬浮：指针倾斜 + 光斑跟手 ================= */
+
+  var EFFECTS = {
+    countup: countUp,
+    blurtext: blurText,
+    glare: glare,
+    tilt: tilt,
+    reveal: reveal
+  };
+
+  function tilt(el) {
+    el.classList.add('rb-tilt');
+    if (reducedMotion() || !finePointer()) return;
+    var max = num(el.dataset.rbTilt, 3.4);
+    var raf = 0, nx = 0, ny = 0;
+
+    function apply() {
+      raf = 0;
+      el.style.setProperty('--rb-tx', (nx * max).toFixed(2) + 'deg');
+      el.style.setProperty('--rb-ty', (-ny * max).toFixed(2) + 'deg');
+      el.style.setProperty('--rb-mx', ((nx + 0.5) * 100).toFixed(1) + '%');
+      el.style.setProperty('--rb-my', ((ny + 0.5) * 100).toFixed(1) + '%');
+    }
+    function move(e) {
+      var r = el.getBoundingClientRect();
+      if (!r.width || !r.height) return;
+      nx = (e.clientX - r.left) / r.width - 0.5;
+      ny = (e.clientY - r.top) / r.height - 0.5;
+      if (!raf) raf = requestAnimationFrame(apply);
+    }
+    function rest() { nx = 0; ny = 0; apply(); }
+
+    el.addEventListener('pointermove', move);
+    el.addEventListener('pointerleave', rest);
+    el.addEventListener('pointercancel', rest);
+  }
+
+  /* ================= 入场：滚动到位时错落浮现 ================= */
+  // 关键：rb-reveal 这个类只由 JS 加上去。脚本没跑（或出错）时元素保持默认可见，
+  // 绝不会出现「JS 挂了整页空白」。
+
+  function reveal(el) {
+    el.classList.add('rb-reveal');
+    if (reducedMotion() || typeof IntersectionObserver === 'undefined') {
+      el.classList.add('is-in');
+      return;
+    }
+    var d = el.dataset.rbDelay;
+    if (d === undefined) {
+      var sibs = el.parentElement ? el.parentElement.querySelectorAll(':scope > [data-rb]') : [];
+      var i = Array.prototype.indexOf.call(sibs, el);
+      d = Math.min(Math.max(i, 0) * 70, 420);
+    }
+    el.style.setProperty('--rb-delay', num(d, 0) + 'ms');
+    inView(el, function () { el.classList.add('is-in'); }, 0.08);
+    // 兜底：万一 IntersectionObserver 因为容器尺寸/时机没回调，也别让内容一直看不见
+    window.setTimeout(function () { el.classList.add('is-in'); }, 2500);
+  }
+
+  function reducedMotion() {
+    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }
+  function finePointer() {
+    return !!(window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches);
+  }
+
   /* ================= 自动挂载 ================= */
 
   function scan(root) {
     var scope = root || document;
-    var q = function (sel, fn) {
-      var list = scope.querySelectorAll(sel);
-      for (var i = 0; i < list.length; i++) fn(list[i]);
-    };
-    q('[data-rb="countup"]', countUp);
-    q('[data-rb="blurtext"]', blurText);
-    q('[data-rb="glare"]', glare);
+    var list = scope.querySelectorAll('[data-rb]');
+    for (var i = 0; i < list.length; i++) {
+      var el = list[i];
+      var names = String(el.getAttribute('data-rb') || '').split(/\s+/);
+      for (var j = 0; j < names.length; j++) {
+        var key = names[j].toLowerCase();
+        var fn = EFFECTS[key];
+        var flag = '__rb_' + key;
+        if (fn && !el[flag]) { el[flag] = 1; fn(el); }
+      }
+    }
   }
 
   // home.js / pages.js 渲染完成后会派发 site:rendered
@@ -432,5 +502,5 @@
     clickSpark();
   }
 
-  window.RB = { scan: scan, countUp: countUp, blurText: blurText, glare: glare, clickSpark: clickSpark, version: '1.0.0' };
+  window.RB = { scan: scan, countUp: countUp, blurText: blurText, glare: glare, tilt: tilt, reveal: reveal, clickSpark: clickSpark, version: '1.1.0' };
 })();
