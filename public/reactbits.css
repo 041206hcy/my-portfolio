@@ -1,0 +1,86 @@
+/*!
+ * reactbits.css —— React Bits「原生态移植版」的样式（本站自用）
+ * 移植自 DavidHDev/react-bits —— https://github.com/DavidHDev/react-bits
+ * License: MIT + Commons Clause License Condition v1.0 — Copyright (c) 2026 David Haz
+ * 用法：作为本站（应用）的一部分使用；不得把组件本身（含移植版）单独出售、再许可或再分发。
+ * 对应脚本：reactbits.js（CountUp / BlurText / GlareHover / ClickSpark）
+ * 配色已按本站「纸色 + 墨字 + 砖红」调过：默认掠过光是纸白 screen，火花是砖红。
+ */
+
+/* ---------- BlurText：逐词（中文按字）虚化浮现 ---------- */
+/* 原实现 <p display:flex flexWrap:wrap> + 每个片段 inline-block + 逐片段 transitionDelay */
+.rb-blurtext {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+
+.rb-blurtext__piece {
+  display: inline-block;
+  opacity: 0;
+  filter: blur(10px);          /* 默认 blur=10 */
+  transform: translateY(-50px); /* 默认 direction='top', distance=50 */
+  will-change: transform, filter, opacity;
+  /* 默认 stepDuration=0.35s；缓动取原实现的 CSS_EASE */
+  transition:
+    opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.rb-blurtext.is-in .rb-blurtext__piece {
+  opacity: 1;
+  filter: blur(0);
+  transform: none;
+}
+
+/* ---------- GlareHover：掠过光（streak 变体） ---------- */
+.rb-glare {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.rb-glare__glare {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  opacity: 0;
+  /* 原实现默认 blendMode='screen'；纸白在照片上最像真实反光 */
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.rb-glare__band {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  background: var(--rb-glare);
+  will-change: transform;
+}
+
+/* ---------- ClickSpark：点击火花（一层全局 canvas） ---------- */
+.rb-spark {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rb-blurtext__piece {
+    opacity: 1;
+    filter: none;
+    transform: none;
+    transition: none;
+  }
+  .rb-spark { display: none; }
+}
+
+/* 打印时不要动效残留 */
+@media print {
+  .rb-glare__glare, .rb-spark { display: none; }
+}
