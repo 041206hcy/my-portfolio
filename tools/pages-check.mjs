@@ -4,6 +4,11 @@ const BASE = process.env.BASE || 'http://127.0.0.1:8787';
 
 const PAGES = [
   '/',
+  '/life',
+  '/learn',
+  '/work',
+  '/media',
+  '/skill',
   '/journeys',
   '/journey',
   '/photos',
@@ -11,6 +16,7 @@ const PAGES = [
   '/notes',
   '/about',
   '/admin',
+  '/post.html',
   '/notes/cloudflare-deploy',
   '/notes/lidar-to-feature-matrix',
   '/404.html',
