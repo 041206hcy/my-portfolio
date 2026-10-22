@@ -241,11 +241,12 @@
       const dates = withKeys.map((p) => p.shot_at).filter(Boolean).sort();
       const first = dates.length ? fmtDate(dates[0]) : '';
       const last = dates.length ? fmtDate(dates[dates.length - 1]) : '';
-      meta.textContent = [
-        first ? `第一张照片 ${first}` : '还没有照片',
-        last ? `最近更新 ${last}` : '',
-        `${stats.photos || 0} 张照片 · ${stats.trips || 0} 次旅程`,
-      ].filter(Boolean).join(' · ');
+      // 张数/旅程数由上面的统计条去说，这里只说时间，别重复报数
+      const bits = [];
+      if (first) bits.push(`第一张照片 ${first}`);
+      if (last) bits.push(`最近更新 ${last}`);
+      if (!bits.length) bits.push('还没有照片 · 传上第一批之后，这里会记下第一张与最近更新');
+      meta.textContent = bits.join(' · ');
     }
 
     if (!pick.length || !plates) {
