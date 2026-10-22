@@ -279,3 +279,55 @@ a.feature:hover .feature__title, a.card--flat:hover .card--flat__title { color: 
 }
 .flow__open { display: block; width: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; }
 .flow__open:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- 数据条（单次旅程顶部） ---------- */
+.stats-strip {
+  display: flex; flex-wrap: wrap; gap: 4px 34px;
+  margin: 6px 0 0; padding: 14px 0;
+  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+}
+.stats-strip > div { display: flex; flex-direction: column; gap: 2px; }
+.stats-strip b { font-family: var(--font-serif); font-size: var(--fs-xl); font-weight: 600; line-height: 1.2; }
+.stats-strip span { font-size: var(--fs-xs); color: var(--muted); letter-spacing: .1em; }
+
+/* ---------- 按天分组 ---------- */
+.day-head { display: flex; align-items: baseline; gap: 12px; margin: 28px 0 12px; }
+.day-head__date { font-family: var(--font-serif); font-size: var(--fs-xl); font-weight: 600; }
+.day-head__line { flex: 1; border-top: 1px solid var(--line); }
+.day-head__count { font-size: var(--fs-xs); color: var(--muted); }
+
+/* ---------- 筛选条（相册页） ---------- */
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0 6px; }
+.filters__item {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border: 1px solid var(--line); border-radius: 999px;
+  font-size: var(--fs-sm); color: var(--muted); text-decoration: none;
+}
+.filters__item b { font-weight: 600; color: var(--ink); }
+.filters__item:hover { border-color: var(--rule-strong); color: var(--ink); }
+.filters__item.is-on { border-color: var(--accent-ink); color: var(--accent-ink); }
+.filters__item.is-on b { color: var(--accent-ink); }
+.album__more { text-align: center; margin: 24px 0 0; }
+
+/* ---------- 年份 rail（旅程列表） ---------- */
+.rail { position: sticky; top: calc(var(--nav-h) + 18px); font-size: var(--fs-sm); }
+.rail__title { margin: 0 0 8px; font-size: var(--fs-xs); letter-spacing: .2em; color: var(--muted); }
+.rail a {
+  display: flex; justify-content: space-between; gap: 10px;
+  padding: 6px 0; color: var(--muted); text-decoration: none;
+  border-bottom: 1px solid var(--line);
+}
+.rail a:hover { color: var(--accent-ink); }
+.rail a b { font-weight: 600; }
+
+/* ---------- 日常照片出口 ---------- */
+.loose {
+  display: flex; align-items: center; gap: 14px;
+  margin-top: 28px; padding: 16px 18px;
+  border: 1px dashed var(--rule-strong); text-decoration: none; color: inherit;
+}
+.loose:hover { border-color: var(--accent-ink); }
+.loose__title { font-family: var(--font-serif); font-size: var(--fs-xl); font-weight: 600; }
+.loose__meta { flex: 1; font-size: var(--fs-sm); color: var(--muted); }
+
+@media (max-width: 767px) { .rail { display: none; } }
