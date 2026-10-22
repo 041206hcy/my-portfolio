@@ -78,6 +78,7 @@
     pending: 'pin-status',
     manage: 'manage-status',
     trip: 'trip-status',
+    copy: 'copy-status',
   };
   const notice = (msg, bad, where) => {
     const el = $(HINT[where] || HINT.upload);
@@ -495,6 +496,68 @@
     }
   });
 
+  /* ---------------- 本期文字（settings 表里的 copy.* 键） ----------------
+     首页的导语/手记/方法卡/页脚/边注都由这里写；服务端只接受 copy. 前缀的键。 */
+
+  const COPY_FIELDS = {
+    'copy.lede': 'copy-lede',
+    'copy.issue_note': 'copy-issue',
+    'copy.method': 'copy-method',
+    'copy.footer': 'copy-footer',
+  };
+
+  const sidenoteList = (raw) => {
+    try {
+      const parsed = JSON.parse(raw || '[]');
+      return Array.isArray(parsed) ? parsed.map((s) => String(s)) : [];
+    } catch (e) {
+      return [];
+    }
+  };
+
+  async function loadCopy() {
+    try {
+      const data = await api('/api/admin/settings');
+      const map = {};
+      for (const row of (data.settings || [])) map[row.key] = row.value;
+      for (const key of Object.keys(COPY_FIELDS)) {
+        const el = $(COPY_FIELDS[key]);
+        if (el) el.value = map[key] || '';
+      }
+      const sn = $('copy-sidenotes');
+      if (sn) sn.value = sidenoteList(map['copy.sidenotes']).join('\n');
+      notice('已读取当前文字。', false, 'copy');
+    } catch (err) {
+      notice('读取文字失败：' + err.message, true, 'copy');
+    }
+  }
+
+  const bindCopy = () => {
+    const save = $('copy-save');
+    if (save) {
+      save.addEventListener('click', async () => {
+        const values = {};
+        for (const key of Object.keys(COPY_FIELDS)) {
+          const el = $(COPY_FIELDS[key]);
+          values[key] = el ? el.value : '';
+        }
+        const sn = $('copy-sidenotes');
+        values['copy.sidenotes'] = JSON.stringify(
+          (sn ? sn.value : '').split('\n').map((s) => s.trim()).filter(Boolean).slice(0, 12)
+        );
+        try {
+          await postJson('/api/admin/settings', { values });
+          notice('文字已保存。刷新首页就能看到。', false, 'copy');
+        } catch (err) {
+          notice('保存失败：' + err.message, true, 'copy');
+        }
+      });
+    }
+    const reload = $('copy-reload');
+    if (reload) reload.addEventListener('click', loadCopy);
+  };
+  bindCopy();
+
   /* ---------------- 启动 ---------------- */
 
   (async () => {
@@ -519,5 +582,7 @@
     } catch (err) {
       notice('读取数据失败：' + err.message, true);
     }
+    // 文字面板单独读一次：口令没填时它会自己再报一次 401，不影响照片区
+    await loadCopy();
   })();
 })();
