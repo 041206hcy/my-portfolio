@@ -7,7 +7,6 @@
 <meta name="description" content="走到哪儿拍到哪儿：按地点和时间铺开的旅行照片地图，分旅程整理，附机票火车票与轨迹。">
 <meta name="keywords" content="旅行照片,照片地图,旅程轨迹,黄翀与,航拍,地理信息">
 <meta name="author" content="黄翀与">
-<meta name="theme-color" content="#f2f3ee">
 <!-- 正式域名：https://shackle0412.vip/ -->
 <!-- Google Search Console 站点所有权验证 -->
 <meta name="google-site-verification" content="cdmAAOKNRCliI3cHww16fZaWWQc35sf9DuTs3Hl5xno" />
@@ -20,9 +19,6 @@
 <meta property="og:url" content="https://shackle0412.vip/">
 <meta property="og:image" content="https://shackle0412.vip/assets/og-cover.jpg">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<!-- 地图瓦片先握手，等用户滚到地图那一段时省下 TLS 往返 -->
-<link rel="preconnect" href="https://a.tile.openstreetmap.org" crossorigin>
-<link rel="preconnect" href="https://b.tile.openstreetmap.org" crossorigin>
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="layout.css">
 <link rel="stylesheet" href="vendor/leaflet.css">
@@ -46,12 +42,12 @@
 
 <main id="main">
 
-  <!-- ================= 刊头：文字 1–6 列 / 图版 8–12 列 ================= -->
+  <!-- ================= 刊头：文字 1–6 列 / 相纸 8–12 列 ================= -->
   <section class="masthead" id="masthead">
     <div class="masthead__lede">
       <p class="kicker">旅行手记 · 2019 — 2026</p>
       <h1 class="masthead__name">黄翀与的旅程</h1>
-      <div class="masthead__rule" aria-hidden="true"></div>
+      <div class="masthead__rule"></div>
       <p class="masthead__tag">走到哪儿，拍到哪儿</p>
       <p class="masthead__desc">
         去过的地方在这张图上连成片。照片从相册传上来，标好位置，
@@ -67,7 +63,20 @@
     <p class="masthead__meta" id="masthead-meta"></p>
   </section>
 
-  <!-- ================= 目录条：本期的页目（这里才需要编号） ================= -->
+  <!-- ================= 编辑层：本期手记 + 边注（文字都能在后台改） ================= -->
+  <section class="lede-band" id="issue" aria-labelledby="issue-title">
+    <div class="lede-band__main">
+      <p class="kicker" id="issue-kicker">创刊号</p>
+      <h2 class="lede-band__title" id="issue-title">先说几句</h2>
+      <div class="lede-band__body" id="issue-note"></div>
+    </div>
+    <aside class="sidenotes" id="sidenotes" aria-label="边注"></aside>
+  </section>
+
+  <!-- ================= 编辑层：跨页图版（一张最横的主图 + 长说明） ================= -->
+  <figure class="spread" id="spread" hidden></figure>
+
+  <!-- ================= 目录条：本期的页目 ================= -->
   <nav class="toc" aria-label="本期目录">
     <a class="toc__cell" href="/journeys">
       <span class="toc__no">01</span>
@@ -95,46 +104,54 @@
     </a>
   </nav>
 
-  <!-- ================= 旅程：最近一次跨页 + 其余索引 ================= -->
+  <!-- ================= 01 旅程：最近一次跨页 + 其余索引 ================= -->
   <section class="band" id="trips">
     <header class="head">
+      <p class="head__no">01</p>
       <h2 class="head__title">旅程</h2>
-      <p class="head__sub">最近一次在最上面，其余按出发时间倒序。</p>
+      <p class="head__sub">最近一次在最上面</p>
       <span class="head__more" id="trip-count"></span>
     </header>
+    <div class="years" id="trip-years" aria-label="按年份"></div>
     <div id="feature-trip"></div>
     <div class="trip-index" id="trip-index"></div>
   </section>
 
-  <!-- ================= 地图：满版色块 ================= -->
+  <!-- ================= 02 地图：满版色块 ================= -->
   <section class="band band--soft band--bleed" id="map">
     <div class="band__inner">
       <header class="head">
+        <p class="head__no">02</p>
         <h2 class="head__title">地图</h2>
-        <p class="head__sub">每个点是一张照片，点开图标看原图。</p>
+        <p class="head__sub">点开图标看照片</p>
         <span class="head__more" id="map-hint" role="status">正在加载地图…</span>
       </header>
-      <div class="map" id="map-canvas"></div>
+      <div class="map-layout">
+        <aside class="place-index" id="place-index" aria-label="地点索引"></aside>
+        <div class="map" id="map-canvas"></div>
+      </div>
     </div>
   </section>
 
-  <!-- ================= 照片：胶片条 + 照片流 ================= -->
+  <!-- ================= 03 照片：胶片条 + 错版墙 ================= -->
   <section class="band" id="wall">
     <header class="head">
+      <p class="head__no">03</p>
       <h2 class="head__title">照片</h2>
-      <p class="head__sub">新的排前面，按原始比例铺开。</p>
+      <p class="head__sub">新的排前面</p>
       <span class="head__more" id="wall-count"></span>
     </header>
     <div class="strip" id="film-strip" aria-label="最近的照片"></div>
     <div class="flow" id="photo-wall"></div>
   </section>
 
-  <!-- ================= 笔记 ================= -->
+  <!-- ================= 04 笔记 ================= -->
   <section class="band band--soft band--bleed" id="notes">
     <div class="band__inner">
       <header class="head">
+        <p class="head__no">04</p>
         <h2 class="head__title">笔记</h2>
-        <p class="head__sub">路上写下的技术记录与复盘。</p>
+        <p class="head__sub">路上写下的</p>
         <span class="head__more">共 2 篇</span>
       </header>
       <ul class="note-list">
@@ -153,6 +170,18 @@
           </a>
         </li>
       </ul>
+    </div>
+  </section>
+
+  <!-- ================= 说明层：方法卡（这一站怎么用，正文可编辑，数字自动算） ================= -->
+  <section class="band band--soft" id="method" aria-labelledby="method-title">
+    <div class="band__inner method-card">
+      <div class="method-card__main">
+        <p class="kicker">这一站怎么用</p>
+        <h2 class="head__title" id="method-title">方法</h2>
+        <div class="method-card__body" id="method-body"></div>
+      </div>
+      <aside class="method-card__aside" id="method-aside" aria-label="这一期的数字"></aside>
     </div>
   </section>
 
@@ -193,10 +222,9 @@
   <p class="lightbox__cap" id="lightbox-cap"></p>
 </div>
 
-<!-- defer：三个脚本都不阻塞首屏解析，顺序仍然保证 -->
-<script src="vendor/leaflet.js" defer></script>
-<script src="vendor/leaflet.markercluster.js" defer></script>
-<script src="app.js" defer></script>
-<script src="home.js" defer></script>
+<script src="vendor/leaflet.js"></script>
+<script src="vendor/leaflet.markercluster.js"></script>
+<script src="app.js"></script>
+<script src="home.js"></script>
 </body>
 </html>
