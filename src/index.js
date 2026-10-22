@@ -50,6 +50,18 @@ export default {
       if (path.startsWith('/img/')) return await serveImage(request, env, path.slice('/img/'.length));
       if (path === '/api/site') return await siteData(env);
       if (path === '/api/photos') return await listPhotos(env, url);
+      if (path === '/api/posts') return await listPosts(env, url);
+      if (path === '/api/post') return await getPost(env, url);
+      // 美观地址：/p/<id> 不另建文件，交给同一张文章页，由前端按 id 取内容
+      const pm = /^\/p\/([a-z0-9]{4,64})\/?$/.exec(path);
+      if (pm) {
+        const inner = new URL(request.url);
+        inner.pathname = '/post.html';
+        inner.searchParams.set('id', pm[1]);
+        return await env.ASSETS.fetch(
+          new Request(inner.toString(), { method: 'GET', headers: request.headers })
+        );
+      }
       if (path.startsWith('/api/admin/')) {
         if (!(await adminAllowed(request, env))) {
           return json({ error: 'unauthorized' }, { status: 401 });
@@ -213,6 +225,8 @@ async function siteData(env) {
       trips: trips.length,
       pinned: photos.filter((p) => p.lat !== null && p.lng !== null).length,
     },
+    sections: await sectionCounts(env),
+    latest: await latestPosts(env, 3),
     copy: await readCopy(env),
   });
 }
@@ -260,6 +274,114 @@ async function listPhotos(env, url) {
   sql += ' ORDER BY COALESCE(p.shot_at, p.created_at) ASC LIMIT 5000';
   const photos = (await env.DB.prepare(sql).bind(...args).all()).results;
   return json({ photos });
+}
+
+/* ---------------- 通用内容（posts 表）：七个板块共用一张表 ----------------
+   板块只是 section 字段，所以「加一个板块」= 前端加一个薄壳页，不必改表。
+   这里同时给首页提供 sections（每块几条、最近更新）与 latest（最新三条混流）。 */
+
+const SECTIONS = [
+  { key: 'life',  name: '生活记录',     en: 'Life',   href: '/life',   desc: '吃了什么、买到了什么、今天干了什么。' },
+  { key: 'learn', name: '学习笔记',     en: 'Study',  href: '/learn',  desc: '课程、读书、代码，以及踩过的坑。' },
+  { key: 'work',  name: '作品与项目',   en: 'Work',   href: '/work',   desc: '论文、测绘项目、可视化成品。' },
+  { key: 'media', name: '书影音',       en: 'Shelf',  href: '/media',  desc: '在读、在看、在听，看完留一句短评。' },
+  { key: 'skill', name: '技能与工具箱', en: 'Skills', href: '/skill',  desc: '会什么、用什么、用到什么深度。' },
+];
+
+function normTags(v) {
+  const arr = Array.isArray(v) ? v : typeof v === 'string' ? v.split(/[,，]/) : [];
+  return arr.map((t) => String(t).trim()).filter(Boolean).slice(0, 12).join(',');
+}
+
+async function sectionCounts(env) {
+  let counts = {};
+  try {
+    const rows = (
+      await env.DB.prepare(
+        `SELECT section, COUNT(*) AS n, MAX(COALESCE(posted_at, created_at)) AS latest
+           FROM posts WHERE visibility = 'public' GROUP BY section`
+      ).all()
+    ).results;
+    for (const r of rows) counts[r.section] = { n: r.n, latest: r.latest };
+  } catch {
+    counts = {};
+  }
+  return SECTIONS.map((s) => ({
+    key: s.key,
+    name: s.name,
+    en: s.en,
+    href: s.href,
+    desc: s.desc,
+    count: counts[s.key] ? counts[s.key].n : 0,
+    latest: counts[s.key] ? counts[s.key].latest : null,
+  }));
+}
+
+async function latestPosts(env, limit = 3) {
+  try {
+    return (
+      await env.DB.prepare(
+        `SELECT id, section, title, excerpt, tags, posted_at, cover_key
+           FROM posts WHERE visibility = 'public'
+          ORDER BY COALESCE(posted_at, created_at) DESC LIMIT ?`
+      )
+        .bind(limit)
+        .all()
+    ).results;
+  } catch {
+    return [];
+  }
+}
+
+const POST_LIST_COLS = 'id, section, title, slug, excerpt, tags, cover_key, posted_at, visibility, extra';
+
+async function listPosts(env, url) {
+  const section = url.searchParams.get('section') || '';
+  const tag = (url.searchParams.get('tag') || '').trim();
+  const q = (url.searchParams.get('q') || '').trim();
+  const includeLink = url.searchParams.get('include') === 'link';
+  const limit = Math.min(Math.max(Number(url.searchParams.get('limit')) || 200, 1), 500);
+  const offset = Math.max(Number(url.searchParams.get('offset')) || 0, 0);
+  const vis = includeLink ? "('public','link')" : "('public')";
+
+  let sql = `SELECT ${POST_LIST_COLS} FROM posts WHERE visibility IN ${vis}`;
+  const args = [];
+  if (section) {
+    sql += ' AND section = ?';
+    args.push(section);
+  }
+  if (tag) {
+    sql += " AND (',' || COALESCE(tags, '') || ',') LIKE ?";
+    args.push(`%,${tag},%`);
+  }
+  if (q) {
+    sql += ' AND (title LIKE ? OR excerpt LIKE ? OR body LIKE ? OR COALESCE(tags, \'\') LIKE ?)';
+    const like = `%${q}%`;
+    args.push(like, like, like, like);
+  }
+  sql += ' ORDER BY COALESCE(posted_at, created_at) DESC, sort ASC LIMIT ? OFFSET ?';
+  args.push(limit, offset);
+
+  const posts = (await env.DB.prepare(sql).bind(...args).all()).results;
+  return json({ posts, limit, offset, more: posts.length === limit });
+}
+
+async function getPost(env, url) {
+  const id = url.searchParams.get('id') || '';
+  if (!/^[a-z0-9]{4,64}$/.test(id)) return json({ error: 'bad id' }, { status: 400 });
+  const includeLink = url.searchParams.get('include') === 'link';
+  const post = await env.DB.prepare('SELECT * FROM posts WHERE id = ?').bind(id).first();
+  if (!post) return json({ error: 'not found' }, { status: 404 });
+  const ok = post.visibility === 'public' || (post.visibility === 'link' && includeLink);
+  if (!ok) return json({ error: 'not found' }, { status: 404 });
+  if (post.extra) {
+    try {
+      post.extra = JSON.parse(post.extra);
+    } catch {
+      /* extra 不是合法 JSON 就原样带出去，前端能容错 */
+    }
+  }
+  return json({ post });
 }
 
 /* ---------------- 管理写 ---------------- */
@@ -424,6 +546,92 @@ async function adminApi(request, env, url) {
         .run();
     }
     return json({ ok: true, saved: keys.length });
+  }
+
+  /* 通用内容：管理端列表（含隐私条目）/ 增改 / 删 */
+  if (method === 'GET' && route === 'posts') {
+    const section = url.searchParams.get('section') || '';
+    let sql = `SELECT id, section, title, slug, excerpt, body, tags, cover_key, posted_at,
+                      visibility, extra, sort, created_at, updated_at FROM posts`;
+    const args = [];
+    if (section) {
+      sql += ' WHERE section = ?';
+      args.push(section);
+    }
+    sql += ' ORDER BY COALESCE(posted_at, created_at) DESC LIMIT 500';
+    const posts = (await env.DB.prepare(sql).bind(...args).all()).results;
+    return json({ posts });
+  }
+
+  if (method === 'POST' && route === 'post') {
+    const b = await request.json();
+    const section = String(b.section || '').trim();
+    if (!SECTIONS.some((s) => s.key === section) && b.section !== undefined) {
+      return json({ error: 'bad section' }, { status: 400 });
+    }
+    if (b.title !== undefined && !String(b.title).trim()) {
+      return json({ error: 'title required' }, { status: 400 });
+    }
+    const id = b.id ? String(b.id) : newId();
+    const current = await env.DB.prepare('SELECT * FROM posts WHERE id = ?').bind(id).first();
+    if (!current && (!section || !String(b.title || '').trim())) {
+      return json({ error: 'section and title required' }, { status: 400 });
+    }
+    const visibility = pickVisibility(b.visibility, current ? current.visibility : 'public');
+    const extra =
+      b.extra === undefined
+        ? current
+          ? current.extra
+          : null
+        : b.extra && typeof b.extra === 'object'
+          ? JSON.stringify(b.extra)
+          : b.extra
+            ? String(b.extra)
+            : null;
+
+    if (!current) {
+      await env.DB.prepare(
+        `INSERT INTO posts (id, section, title, slug, excerpt, body, tags, cover_key, posted_at,
+                            visibility, extra, sort, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`
+      )
+        .bind(
+          id, section, String(b.title).trim(), b.slug || null, b.excerpt || null,
+          String(b.body || ''), normTags(b.tags) || null, b.cover_key || null,
+          b.posted_at || new Date().toISOString().slice(0, 10), visibility, extra, b.sort ?? 0
+        )
+        .run();
+    } else {
+      await env.DB.prepare(
+        `UPDATE posts
+            SET section = ?, title = ?, slug = ?, excerpt = ?, body = ?, tags = ?, cover_key = ?,
+                posted_at = ?, visibility = ?, extra = ?, sort = ?, updated_at = datetime('now')
+          WHERE id = ?`
+      )
+        .bind(
+          b.section !== undefined ? section : current.section,
+          b.title !== undefined ? String(b.title).trim() : current.title,
+          b.slug !== undefined ? b.slug || null : current.slug,
+          b.excerpt !== undefined ? b.excerpt || null : current.excerpt,
+          b.body !== undefined ? String(b.body) : current.body,
+          b.tags !== undefined ? normTags(b.tags) || null : current.tags,
+          b.cover_key !== undefined ? b.cover_key || null : current.cover_key,
+          b.posted_at !== undefined ? b.posted_at || null : current.posted_at,
+          visibility,
+          extra,
+          b.sort !== undefined ? b.sort : current.sort,
+          id
+        )
+        .run();
+    }
+    return json({ ok: true, id, created: !current });
+  }
+
+  if (method === 'POST' && route === 'post-delete') {
+    const { id } = await request.json();
+    if (!id) return json({ error: 'id required' }, { status: 400 });
+    await env.DB.prepare('DELETE FROM posts WHERE id = ?').bind(id).run();
+    return json({ ok: true });
   }
 
   return json({ error: 'not found', route }, { status: 404 });
