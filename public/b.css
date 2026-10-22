@@ -1,0 +1,169 @@
+/* B 现代编辑风 · 个人主页设计系统
+   —— 近白底（与旧纸色同温）、无衬线超大字、发丝网格、编号、大量留白。
+   只给「个人主页」这一侧用：首页 / 板块页 / 文章页 / 关于。
+   旅行子页随后分批迁进来；后台一直用旧的 styles.css，不受影响。 */
+
+:root{
+  --bg:#f5f3ee; --panel:#fffdf9; --ink:#14130f; --ink-2:#4a4842; --muted:#8b887e;
+  --line:#e0dcd1; --line-2:#cfc9bb; --accent:#d4552b; --accent-soft:#f3e2d8;
+  --font:-apple-system,"Segoe UI","Microsoft YaHei",system-ui,sans-serif;
+  --mono:ui-monospace,Consolas,"Courier New",monospace;
+  --maxw:1160px; --r:4px;
+}
+*{box-sizing:border-box}
+html{overflow-x:clip;scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);
+     font-size:15px;line-height:1.72;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+img{max-width:100%;height:auto;display:block}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 44px}
+.label{font-family:var(--mono);font-size:10.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--muted)}
+
+/* ---------- 顶栏 ---------- */
+.nav{position:sticky;top:0;z-index:20;background:rgba(245,243,238,.94);
+     backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.nav__in{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:17px 0}
+.nav__brand{font-size:13px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;text-decoration:none}
+.nav__links{display:flex;gap:24px;font-size:13px;flex-wrap:wrap}
+.nav__links a{color:var(--ink-2);text-decoration:none;border-bottom:1px solid transparent;padding-bottom:2px}
+.nav__links a:hover{color:var(--ink)}
+.nav__links a.on{color:var(--accent);border-color:var(--accent)}
+
+/* ---------- 名片首屏 ---------- */
+.hero{padding:84px 0 0;display:grid;grid-template-columns:1.35fr .95fr;gap:64px;align-items:start}
+.hero__name{font-size:clamp(54px,8.4vw,94px);line-height:.95;letter-spacing:-.035em;margin:20px 0 0;font-weight:800}
+.hero__role{margin:18px 0 0;font-size:15px;color:var(--ink-2)}
+.hero__lede{margin:22px 0 0;font-size:17px;line-height:1.75;max-width:26em}
+.acts{display:flex;gap:10px;flex-wrap:wrap;margin:28px 0 0}
+.btn{display:inline-block;padding:11px 20px;border:1px solid var(--ink);border-radius:var(--r);
+     font-size:13px;letter-spacing:.04em;text-decoration:none;color:var(--ink);background:transparent;
+     font-family:inherit;cursor:pointer}
+.btn:hover{background:rgba(20,19,15,.05)}
+.btn--key{background:var(--ink);color:#fff;border-color:var(--ink)}
+.btn--key:hover{background:#000}
+.btn--small{padding:7px 13px;font-size:12px}
+
+.rail{border-top:1px solid var(--ink)}
+.rail__row{display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid var(--line);
+           text-decoration:none}
+.rail__row:hover b{color:var(--accent)}
+.rail__row b{font-weight:600;font-size:13.5px;transition:color .15s}
+.rail__row span{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.ph{margin-top:26px;aspect-ratio:4/3;border:1px solid var(--line);background:var(--panel);
+    display:grid;place-items:center;overflow:hidden}
+.ph span{font-family:var(--mono);font-size:10.5px;letter-spacing:.24em;color:var(--muted)}
+.ph img{width:100%;height:100%;object-fit:cover}
+
+/* ---------- 带标题的区块 ---------- */
+.band{margin-top:76px;border-top:1px solid var(--ink);padding-top:20px;
+      display:flex;justify-content:space-between;align-items:baseline;gap:16px}
+.band__note{font-family:var(--mono);font-size:11px;color:var(--muted)}
+
+/* ---------- 板块网格 ---------- */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);border-left:1px solid var(--line);margin-top:2px}
+.cell{border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--panel);
+      padding:26px 24px 28px;text-decoration:none;display:flex;flex-direction:column;gap:0}
+.cell:hover .cell__t{color:var(--accent)}
+.cell__no{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.18em}
+.cell__t{font-size:24px;letter-spacing:-.02em;margin:13px 0 0;font-weight:700;transition:color .15s}
+.cell__d{margin:10px 0 0;font-size:13.5px;color:var(--ink-2);flex:1}
+.cell__m{font-family:var(--mono);font-size:11px;color:var(--muted);border-top:1px solid var(--line);
+         padding-top:10px;margin-top:16px}
+
+/* ---------- 最近混流 ---------- */
+.feed{margin-top:2px;border-top:1px solid var(--line)}
+.row{display:grid;grid-template-columns:112px 96px 1fr;gap:20px;align-items:baseline;
+     padding:17px 0;border-bottom:1px solid var(--line);text-decoration:none}
+.row:hover .row__t{color:var(--accent)}
+.row__d{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.row__k{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+.row__t{font-size:17.5px;letter-spacing:-.015em;transition:color .15s}
+
+/* ---------- 板块页：筛选条 + 列表 ---------- */
+.page-head{padding:64px 0 0}
+.page-head h1{font-size:clamp(40px,5.4vw,64px);line-height:1.02;letter-spacing:-.03em;margin:18px 0 0;font-weight:800}
+.page-head p{margin:16px 0 0;font-size:16px;color:var(--ink-2);max-width:36em}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin:28px 0 0;padding-bottom:18px;border-bottom:1px solid var(--line)}
+.chip{font-size:12.5px;padding:6px 13px;border:1px solid var(--line-2);border-radius:999px;
+      background:transparent;color:var(--ink-2);cursor:pointer;font-family:inherit}
+.chip:hover{border-color:var(--ink)}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.search{margin:18px 0 0;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.search input{flex:1;min-width:220px;padding:11px 14px;border:1px solid var(--line-2);border-radius:var(--r);
+              background:var(--panel);font-family:inherit;font-size:14px;color:var(--ink)}
+.count{margin:20px 0 0}
+
+.plist{display:grid;gap:0;border-top:1px solid var(--line);margin-top:0}
+.pitem{display:grid;grid-template-columns:112px 1fr;gap:24px;padding:24px 0;border-bottom:1px solid var(--line);
+       text-decoration:none}
+.pitem:hover .pitem__t{color:var(--accent)}
+.pitem__d{font-family:var(--mono);font-size:12px;color:var(--muted);padding-top:4px}
+.pitem__t{font-size:23px;letter-spacing:-.02em;margin:0;font-weight:700;transition:color .15s}
+.pitem__x{margin:9px 0 0;font-size:14.5px;color:var(--ink-2);max-width:52em}
+.pitem__tags{margin:11px 0 0;display:flex;gap:8px;flex-wrap:wrap}
+.tag{font-family:var(--mono);font-size:11px;color:var(--ink-2);border:1px solid var(--line);
+     border-radius:999px;padding:3px 9px}
+
+/* ---------- 文章页 ---------- */
+.post-head{padding:60px 0 0;max-width:44em}
+.post-head h1{font-size:clamp(34px,4.6vw,52px);line-height:1.08;letter-spacing:-.03em;margin:16px 0 0;font-weight:800}
+.post-meta{margin:16px 0 0;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.prose{margin:38px 0 0;max-width:44em;font-size:16.5px;line-height:1.85}
+.prose p{margin:0 0 1.15em}
+.prose h2{font-size:23px;letter-spacing:-.02em;margin:1.8em 0 .5em;font-weight:700}
+.prose h3{font-size:18.5px;margin:1.5em 0 .4em}
+.prose ul,.prose ol{margin:0 0 1.2em;padding-left:1.3em}
+.prose li{margin:.3em 0}
+.prose code{font-family:var(--mono);font-size:.88em;background:rgba(20,19,15,.06);padding:2px 5px;border-radius:3px}
+.prose pre{background:#171613;color:#f2efe8;padding:16px 18px;overflow:auto;font-size:13px;line-height:1.6}
+.prose pre code{background:transparent;color:inherit;padding:0}
+.prose blockquote{margin:1.4em 0;padding:2px 0 2px 18px;border-left:2px solid var(--accent);color:var(--ink-2)}
+.prose img{margin:1.4em 0;border:1px solid var(--line)}
+.back{margin:44px 0 0}
+
+/* ---------- 空态 ---------- */
+.empty{margin:28px 0 0;padding:34px 26px;border:1px dashed var(--line-2);border-radius:var(--r);
+       color:var(--muted);font-size:14.5px;background:var(--panel)}
+.empty b{color:var(--ink-2)}
+
+/* ---------- 旅行入口里的小照片条 ---------- */
+.strip{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:26px 0 0}
+.strip a{display:block;aspect-ratio:4/3;overflow:hidden;border:1px solid var(--line);background:var(--panel)}
+.strip img{width:100%;height:100%;object-fit:cover}
+
+/* ---------- 页脚 ---------- */
+.colophon{margin:76px 0 0;border-top:1px solid var(--ink);padding:26px 0 52px;
+          display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+          font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.colophon a{color:var(--ink-2);text-decoration:none}
+.colophon a:hover{color:var(--accent)}
+
+/* ---------- 动效（观感层，尊重系统设置） ---------- */
+.rb-blurtext__piece{display:inline-block;white-space:pre;
+  filter:blur(var(--rb-blur,10px));transform:translateY(var(--rb-dist,-50px));
+  transition:filter .35s cubic-bezier(.22,1,.36,1),transform .35s cubic-bezier(.22,1,.36,1)}
+.rb-blurtext.is-in .rb-blurtext__piece{filter:blur(0);transform:none}
+.rb-blurtext__piece--static{filter:none;transform:none}
+@media (prefers-reduced-motion:reduce){
+  .rb-blurtext__piece{filter:none;transform:none;transition:none}
+  html{scroll-behavior:auto}
+}
+
+@media (max-width:900px){
+  .wrap{padding:0 26px}
+  .hero{grid-template-columns:1fr;gap:38px;padding-top:56px}
+  .grid{grid-template-columns:repeat(2,1fr)}
+  .strip{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:640px){
+  .wrap{padding:0 18px}
+  .nav__in{padding:13px 0}
+  .nav__links{gap:12px;font-size:12.5px}
+  .hero__name{font-size:44px}
+  .grid{grid-template-columns:1fr}
+  .row{grid-template-columns:1fr;gap:4px}
+  .row__k{font-size:10.5px}
+  .pitem{grid-template-columns:1fr;gap:6px}
+  .cell__t{font-size:21px}
+  .prose{font-size:16px}
+}
