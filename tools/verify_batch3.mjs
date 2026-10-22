@@ -9,9 +9,10 @@ const ok = (label, cond, extra = '') => {
   console.log((cond ? 'ok   ' : 'FAIL ') + label + (extra ? '   ' + extra : ''));
 };
 
-/* 1. 新页面 */
+/* 1. 新页面（带 ?v= 绕过边缘缓存：部署切换的瞬间可能缓存过 404） */
 for (const p of ['/travel', '/travel/journey?id=2026-08-01-d82x', '/travel/photos', '/travel/map']) {
-  const r = await fetch(U + p, { redirect: 'manual' });
+  const sep = p.includes('?') ? '&' : '?';
+  const r = await fetch(U + p + sep + 'cachebust=' + Date.now(), { redirect: 'manual' });
   ok('新页面 ' + p, r.status === 200, 'HTTP ' + r.status);
 }
 
@@ -41,7 +42,7 @@ ok('首页导航旅行指向 /travel', home.includes('href="/travel"'));
 ok('首页不再有 /journeys', !home.includes('/journeys'));
 const map = await (await fetch(U + '/sitemap.xml' + q)).text();
 ok('sitemap 有 /travel', map.includes('<loc>' + U + '/travel</loc>'));
-ok('sitemap 无旧路径', !map.includes('/journeys') && !map.includes('/photos'));
+ok('sitemap 无旧路径', !map.includes('<loc>' + U + '/journeys</loc>') && !map.includes('<loc>' + U + '/photos</loc>') && !map.includes('<loc>' + U + '/map</loc>'));
 
 /* 5. 接口不受影响 */
 const site = await (await fetch(U + '/api/site')).json();
