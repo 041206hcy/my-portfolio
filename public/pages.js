@@ -246,7 +246,7 @@
         days ? `${days} 天` : '',
         places ? `${places} 个地点` : '',
       ].filter(Boolean);
-      rows += `<a class="row-trip" href="/journey.html?trip=${encodeURIComponent(t.id)}">
+      rows += `<a class="row-trip" href="/journey?trip=${encodeURIComponent(t.id)}">
         <div class="row-trip__thumb">${cover ? `<img src="${esc(imgSrc(cover.key_thumb))}" alt="" loading="lazy">` : ''}</div>
         <div>
           <p class="row-trip__title">${esc(t.title || '未命名旅程')}</p>
@@ -263,7 +263,7 @@
     // 日常出口：schema 里 trip_id 为空就是「不在任何旅程里」的照片，之前全站没有落点
     const loose = data.photos.filter((p) => !p.trip_id);
     const tail = loose.length
-      ? `<a class="loose" href="/photos.html?f=loose">
+      ? `<a class="loose" href="/photos?f=loose">
           <span class="loose__title">不在任何旅程里的照片</span>
           <span class="loose__meta">${loose.length} 张 · 日常随手拍的都在这里</span>
           <span class="row-trip__arrow" aria-hidden="true">→</span>
@@ -372,9 +372,9 @@
       const prev = trips[idx + 1];
       const next = trips[idx - 1];
       pagerEl.innerHTML = `${prev
-        ? `<a href="/journey.html?trip=${encodeURIComponent(prev.id)}"><span>更早的一趟</span>${esc(prev.title || '未命名')}</a>`
+        ? `<a href="/journey?trip=${encodeURIComponent(prev.id)}"><span>更早的一趟</span>${esc(prev.title || '未命名')}</a>`
         : '<span></span>'}${next
-        ? `<a class="pager__next" href="/journey.html?trip=${encodeURIComponent(next.id)}"><span>更新的一趟</span>${esc(next.title || '未命名')}</a>`
+        ? `<a class="pager__next" href="/journey?trip=${encodeURIComponent(next.id)}"><span>更新的一趟</span>${esc(next.title || '未命名')}</a>`
         : '<span></span>'}`;
     }
   }
@@ -429,11 +429,11 @@
       const chip = (href, text, n, on) =>
         `<a class="filters__item${on ? ' is-on' : ''}" href="${href}">${esc(text)} <b>${n}</b></a>`;
       filterEl.innerHTML = [
-        chip('/photos.html', '全部', photos.length, !f && !y && !chosen),
-        looseCount ? chip('/photos.html?f=loose', '不在旅程里', looseCount, f === 'loose') : '',
-        years.slice(0, 4).map((v) => chip(`/photos.html?y=${encodeURIComponent(v)}`, `${v} 年`,
+        chip('/photos', '全部', photos.length, !f && !y && !chosen),
+        looseCount ? chip('/photos?f=loose', '不在旅程里', looseCount, f === 'loose') : '',
+        years.slice(0, 4).map((v) => chip(`/photos?y=${encodeURIComponent(v)}`, `${v} 年`,
           photos.filter((p) => String(p.shot_at || '').startsWith(v)).length, y === v)).join(''),
-        trips.slice(0, 8).map((t) => chip(`/photos.html?trip=${encodeURIComponent(t.id)}`, t.title || '未命名旅程',
+        trips.slice(0, 8).map((t) => chip(`/photos?trip=${encodeURIComponent(t.id)}`, t.title || '未命名旅程',
           photos.filter((p) => p.trip_id === t.id).length, !!chosen && chosen.id === t.id)).join(''),
       ].filter(Boolean).join('');
     }
