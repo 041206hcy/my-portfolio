@@ -18,6 +18,7 @@
     <a href="#pending">待标点</a>
     <a href="#manage">照片管理</a>
     <a href="#trips">旅程</a>
+    <a href="#copy">文字</a>
   </nav>
 </header>
 
@@ -117,6 +118,38 @@
     <p class="section__text">
       机票 / 火车票的 OCR 录入、真实轨迹（铁路线 / 大圆航线）在第二轮加进来，先把「传图 → 标点 → 地图上看到」这条链跑通。
     </p>
+  </section>
+
+  <section class="section" id="copy">
+    <h2 class="section__title">本期文字</h2>
+    <p class="section__text">
+      首页上那些「编辑位置」的话都由你写：刊头导语、本期手记、方法卡、页脚。留空就用内置的默认文案。
+      边注一行一条，会按顺序排在首页手记旁边。这些文字存在 <code>settings</code> 表里（键名前缀 <code>copy.</code>），
+      首页里的张数、地点数、年份跨度是接口自己算的，不用手写。
+    </p>
+    <div class="copy-form">
+      <label class="bar__field">刊头导语（首页大标题下面那句）
+        <textarea id="copy-lede" rows="2" placeholder="走到哪儿，拍到哪儿。"></textarea>
+      </label>
+      <label class="bar__field">本期手记（一段话，空行分段）
+        <textarea id="copy-issue" rows="5" placeholder="这一期想说什么…"></textarea>
+      </label>
+      <label class="bar__field">方法卡（这一站怎么用）
+        <textarea id="copy-method" rows="4" placeholder="照片只存网页尺寸；没 GPS 的怎么标点；旅程怎么攒…"></textarea>
+      </label>
+      <label class="bar__field">页脚一句话
+        <textarea id="copy-footer" rows="2"></textarea>
+      </label>
+      <label class="bar__field">边注（一行一条，最多 12 条）
+        <textarea id="copy-sidenotes" rows="4" placeholder="照片只存网页尺寸，原图不上云。&#10;没有 GPS 的照片在管理页手动标点。"></textarea>
+      </label>
+      <div class="bar">
+        <button class="btn btn--primary" type="button" id="copy-save">保存文字</button>
+        <button class="btn" type="button" id="copy-reload">重新读取</button>
+        <a class="btn" href="/" target="_blank" rel="noopener">看首页</a>
+      </div>
+      <p class="hint" id="copy-status" role="status"></p>
+    </div>
   </section>
 
 </main>
