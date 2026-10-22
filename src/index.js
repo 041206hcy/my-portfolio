@@ -213,7 +213,38 @@ async function siteData(env) {
       trips: trips.length,
       pinned: photos.filter((p) => p.lat !== null && p.lng !== null).length,
     },
+    copy: await readCopy(env),
   });
+}
+
+/* ---------------- 站点文字（settings 表里的 copy.* 键） ----------------
+   首页上那些「编辑位置」的话都由你写，这里只负责读出来。settings 表本来就有，所以这一轮不加新表。
+   键名固定：copy.lede / copy.issue_note / copy.method / copy.footer / copy.sidenotes(JSON 数组)。
+   读不到就回落成空串，由前端给默认文案 —— 数据库还没建时首页也不该白屏。 */
+async function readCopy(env) {
+  let raw = {};
+  try {
+    const rows = (
+      await env.DB.prepare("SELECT key, value FROM settings WHERE key LIKE 'copy.%'").all()
+    ).results;
+    for (const r of rows) raw[r.key] = r.value == null ? '' : String(r.value);
+  } catch {
+    raw = {};
+  }
+  let sidenotes = [];
+  try {
+    const parsed = JSON.parse(raw['copy.sidenotes'] || '[]');
+    if (Array.isArray(parsed)) sidenotes = parsed.map((s) => String(s)).filter(Boolean).slice(0, 12);
+  } catch {
+    sidenotes = [];
+  }
+  return {
+    lede: raw['copy.lede'] || '',
+    issue_note: raw['copy.issue_note'] || '',
+    method: raw['copy.method'] || '',
+    footer: raw['copy.footer'] || '',
+    sidenotes,
+  };
 }
 
 async function listPhotos(env, url) {
@@ -367,6 +398,32 @@ async function adminApi(request, env, url) {
     await env.DB.prepare("UPDATE photos SET trip_id = NULL WHERE trip_id = ?").bind(id).run();
     await env.DB.prepare('DELETE FROM trips WHERE id = ?').bind(id).run();
     return json({ ok: true });
+  }
+
+  // 站点文字：首页的导语/手记/方法卡/页脚/边注都存进 settings 表
+  if (method === 'GET' && route === 'settings') {
+    const rows = (
+      await env.DB.prepare('SELECT key, value FROM settings ORDER BY key').all()
+    ).results;
+    return json({ settings: rows });
+  }
+
+  // 只接受 copy.* 前缀，避免管理页被当成「任意配置后门」
+  if (method === 'POST' && route === 'settings') {
+    const b = await request.json();
+    const values = b && b.values && typeof b.values === 'object' ? b.values : null;
+    if (!values) return json({ error: 'values required' }, { status: 400 });
+    const keys = Object.keys(values).filter((k) => k.startsWith('copy.')).slice(0, 40);
+    for (const k of keys) {
+      // eslint-disable-next-line no-await-in-loop
+      await env.DB.prepare(
+        `INSERT INTO settings (key, value) VALUES (?, ?)
+         ON CONFLICT(key) DO UPDATE SET value = excluded.value`
+      )
+        .bind(k, String(values[k] == null ? '' : values[k]))
+        .run();
+    }
+    return json({ ok: true, saved: keys.length });
   }
 
   return json({ error: 'not found', route }, { status: 404 });
