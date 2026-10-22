@@ -84,6 +84,7 @@
     $('post-date').value = String(p.posted_at || '').slice(0, 10) || '';
     $('post-vis').value = p.visibility || 'public';
     $('post-body').value = p.body || '';
+    $('post-extra').value = p.extra && typeof p.extra === 'object' ? JSON.stringify(p.extra) : '';
   }
 
   function reset(scroll) {
@@ -106,6 +107,19 @@
       body: $('post-body').value,
     };
     if (!payload.title) return hint('标题不能空。');
+    // 附加信息：可留空。板块不同字段不同（作品 year/role/link/cover，书影音 kind/creator/rating/progress，技能 group/level）
+    const rawExtra = ($('post-extra') && $('post-extra').value.trim()) || '';
+    if (rawExtra) {
+      try {
+        const v = JSON.parse(rawExtra);
+        if (!v || typeof v !== 'object' || Array.isArray(v)) throw new Error('要是一个 { } 对象');
+        payload.extra = v;
+      } catch (err) {
+        return hint('附加信息不是合法 JSON：' + err.message + '（留空也会清掉它）');
+      }
+    } else {
+      payload.extra = {};
+    }
     if (id) payload.id = id;
     hint('保存中……');
     try {
