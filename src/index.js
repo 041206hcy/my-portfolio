@@ -405,6 +405,15 @@ async function listPosts(env, url) {
   args.push(limit, offset);
 
   const posts = (await env.DB.prepare(sql).bind(...args).all()).results;
+  for (const p of posts) {
+    if (p.extra) {
+      try {
+        p.extra = JSON.parse(p.extra);
+      } catch {
+        /* extra 不是合法 JSON 就原样带出去，前端能容错 */
+      }
+    }
+  }
   return json({ posts, limit, offset, more: posts.length === limit });
 }
 
