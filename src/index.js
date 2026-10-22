@@ -46,6 +46,21 @@ export default {
       return Response.redirect(target.toString(), 301);
     }
 
+    // 批 3：旅行整体搬到 /travel/*，旧地址 301 保住（?id= 之类的查询串一起带走）。
+    // 静态资源默认由边缘直接返回，但 wrangler.jsonc 开了 run_worker_first，所以这里一定看得到旧路径。
+    const LEGACY_TRAVEL = {
+      '/journeys': '/travel', '/journeys.html': '/travel',
+      '/journey': '/travel/journey', '/journey.html': '/travel/journey',
+      '/photos': '/travel/photos', '/photos.html': '/travel/photos',
+      '/map': '/travel/map', '/map.html': '/travel/map',
+    };
+    const cleanPath = path.length > 1 && path.endsWith('/') ? path.slice(0, -1) : path;
+    if (LEGACY_TRAVEL[cleanPath]) {
+      const target = new URL(request.url);
+      target.pathname = LEGACY_TRAVEL[cleanPath];
+      return Response.redirect(target.toString(), 301);
+    }
+
     try {
       // 云上 D1 第一次被数据处理请求碰到时，自动补齐表结构（全幂等）。
       // 加这一层是因为：wrangler 的 OAuth 令牌会过期，手工跑 schema.sql 经常卡在网络上；
