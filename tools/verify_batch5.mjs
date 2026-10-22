@@ -48,7 +48,15 @@ ok('admin-posts.js 上传 kind=cover', ajs.includes('kind=cover'));
 
 // 2. 上传白名单
 const bad = await post('/api/admin/blob?pid=v5checkaa01&kind=nope', 'x', 'image/webp');
-if (TOKEN) ok('未带口令的写接口被拒 401', (await post('/api/admin/blob?pid=v5checkaa01&kind=cover', 'x', 'image/webp')).status === 401);
+if (TOKEN) {
+  // 故意不带口令 —— 这一条只在线上（配了口令）才有意义
+  const raw = await fetch(BASE + '/api/admin/blob?pid=v5checkbb01&kind=cover', {
+    method: 'POST',
+    headers: { 'content-type': 'image/webp' },
+    body: 'x',
+  });
+  ok('未带口令的写接口被拒 401', raw.status === 401, 'HTTP ' + raw.status);
+}
 const good = await post('/api/admin/blob?pid=v5checkaa01&kind=cover', 'x', 'image/webp');
 ok('kind=cover 被收下', good.status === 200 && String(good.data.key || '').endsWith('/cover.webp'), JSON.stringify(good.data));
 ok('未知 kind 被拒', bad.status === 400 || bad.status === 401, 'HTTP ' + bad.status);
