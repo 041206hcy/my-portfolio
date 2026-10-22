@@ -43,10 +43,24 @@
     if (!box || !key) return;
     boxImg.src = imgSrc(key);
     boxImg.alt = caption || '旅行照片';
-    boxCap.textContent = caption || '';
+    // 计数 + 翻页：相册页没有它就只能看缩略图
+    const list = document.querySelectorAll('[data-web]');
+    const idx = opener ? Array.prototype.indexOf.call(list, opener) : -1;
+    const counter = (list.length > 1 && idx >= 0) ? `${caption ? ' · ' : ''}${idx + 1}/${list.length}` : '';
+    boxCap.textContent = (caption || '') + counter;
     box.hidden = false;
     document.documentElement.style.overflow = 'hidden';
     ($('lightbox-close') || box).focus({ preventScroll: true });
+  };
+  const stepBox = (dir) => {
+    if (!box || box.hidden) return;
+    const list = Array.from(document.querySelectorAll('[data-web]'));
+    if (!list.length) return;
+    const i = list.indexOf(opener);
+    const n = list[((i < 0 ? 0 : i + dir) + list.length) % list.length];
+    if (!n) return;
+    opener = n;
+    openBox(n.dataset.web, n.dataset.cap || '');
   };
   const closeBox = () => {
     if (!box || box.hidden) return;
@@ -69,7 +83,9 @@
     });
     document.addEventListener('keydown', (e) => {
       if (box.hidden) return;
-      if (e.key === 'Escape') closeBox();
+      if (e.key === 'Escape') { closeBox(); return; }
+      if (e.key === 'ArrowRight') { e.preventDefault(); stepBox(1); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); stepBox(-1); }
     });
   }
 
@@ -236,11 +252,12 @@
       wallEl.innerHTML = photos.length
         ? photos.map((p) => {
           const cap = p.caption || p.place || '旅行照片';
-          return `<figure class="wall__item">
-            <button class="wall__open" type="button" data-web="${esc(p.key_web)}" data-cap="${esc(cap)}">
+          const ar = (p.width && p.height) ? (p.width / p.height) : 4 / 3;
+          return `<figure class="flow__item" style="flex-grow:${ar.toFixed(3)};flex-basis:${Math.round(ar * 190)}px">
+            <button class="flow__open" type="button" data-web="${esc(p.key_web)}" data-cap="${esc(cap)}">
               <img src="${esc(imgSrc(p.key_thumb))}" alt="" loading="lazy">
             </button>
-            <figcaption><span class="wall__place">${esc(p.place || '')}</span><span>${esc(ymd(p.shot_at))}</span></figcaption>
+            <figcaption><span>${esc(p.place || '')}</span><span>${esc(ymd(p.shot_at))}</span></figcaption>
           </figure>`;
         }).join('')
         : `<div class="empty"><b>这趟还没照片</b>去管理页把它们归进这趟旅程。</div>`;
@@ -296,14 +313,15 @@
     for (const [key, list] of groups) {
       html += `<div class="year-head"><span class="year-head__no">${esc(/^\d{4}-\d{2}$/.test(key) ? (Number(key.slice(5)) + ' 月') : key)}</span>
         <span class="year-head__line"></span><span class="year-head__count">${esc(/^\d{4}-\d{2}$/.test(key) ? key.slice(0, 4) + ' 年' : '')} · ${list.length} 张</span></div>
-        <div class="wall wall--mosaic">`;
+        <div class="flow">`;
       for (const p of list) {
         const cap = p.caption || p.place || '旅行照片';
-        html += `<figure class="wall__item">
-          <button class="wall__open" type="button" data-web="${esc(p.key_web)}" data-cap="${esc(cap)}">
+        const ar = (p.width && p.height) ? (p.width / p.height) : 4 / 3;
+        html += `<figure class="flow__item" style="flex-grow:${ar.toFixed(3)};flex-basis:${Math.round(ar * 190)}px">
+          <button class="flow__open" type="button" data-web="${esc(p.key_web)}" data-cap="${esc(cap)}">
             <img src="${esc(imgSrc(p.key_thumb))}" alt="" loading="lazy">
           </button>
-          <figcaption><span class="wall__place">${esc(p.place || '未标注地点')}</span><span>${esc(ymd(p.shot_at))}</span></figcaption>
+          <figcaption><span>${esc(p.place || '未标注地点')}</span><span>${esc(ymd(p.shot_at))}</span></figcaption>
         </figure>`;
       }
       html += `</div>`;

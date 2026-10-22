@@ -248,3 +248,34 @@ body::after { z-index: 1; }
   .plate--main:hover { transform: rotate(1.2deg); }
   .reveal { opacity: 1; transform: none; transition: none; }
 }
+
+/* ---------- 卡片即链接（首页旅程区改成 <a> 后需要） ---------- */
+a.feature, a.card--flat { color: inherit; text-decoration: none; }
+a.feature:focus-visible, a.card--flat:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+a.feature:hover .feature__title, a.card--flat:hover .card--flat__title { color: var(--accent-ink); }
+.feature__more {
+  margin: 10px 0 0;
+  font-size: var(--fs-sm);
+  color: var(--accent-ink);
+  letter-spacing: .06em;
+}
+
+/* ---------- 真实比例照片流（取代固定空洞的错版墙） ---------- */
+.flow { display: flex; flex-wrap: wrap; gap: 10px; }
+.flow__item {
+  flex: 1 1 auto;
+  min-width: 150px;
+  max-width: 100%;
+  margin: 0;
+  background: #fffefb;
+  border: 1px solid var(--line);
+  padding: 5px;
+}
+.flow__item img { display: block; width: 100%; height: auto; }
+.flow__item figcaption {
+  display: flex; justify-content: space-between; gap: 8px;
+  padding: 6px 2px 1px;
+  font-size: var(--fs-xs); color: var(--muted);
+}
+.flow__open { display: block; width: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; }
+.flow__open:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

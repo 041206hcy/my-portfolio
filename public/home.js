@@ -33,17 +33,32 @@
   // 关闭后把焦点还给「打开它的那张缩略图」，键盘用户不会被丢回页首
   let opener = null;
 
-  const openBox = (key, caption) => {
+  const openBox = (key, caption, keepOpener) => {
     if (!key) return;
     const cap = caption || '';
-    opener = document.activeElement;
+    if (!keepOpener) opener = document.activeElement;
     boxImg.src = imgSrc(key);
     boxImg.alt = cap || '旅行照片';
-    boxCap.textContent = cap;
-    boxCap.hidden = !cap;
+    // 计数：把「第几张 / 共几张」拼在图注后面，翻看时心里有数
+    const list = document.querySelectorAll('[data-web]');
+    const idx = opener ? Array.prototype.indexOf.call(list, opener) : -1;
+    const counter = (list.length > 1 && idx >= 0) ? `${cap ? ' · ' : ''}${idx + 1}/${list.length}` : '';
+    boxCap.textContent = cap + counter;
+    boxCap.hidden = !(cap || counter);
     box.hidden = false;
     document.body.style.overflow = 'hidden';
     if (boxClose) boxClose.focus();
+  };
+
+  // 灯箱内左右方向键翻上一张 / 下一张，顺序与页面上缩略图的顺序一致
+  const stepBox = (dir) => {
+    const list = Array.from(document.querySelectorAll('[data-web]'));
+    if (!list.length) return;
+    const i = list.indexOf(opener);
+    const n = list[((i < 0 ? 0 : i + dir) + list.length) % list.length];
+    if (!n) return;
+    opener = n;
+    openBox(n.dataset.web, n.dataset.cap || '', true);
   };
   const closeBox = () => {
     box.hidden = true;
@@ -67,6 +82,8 @@
   document.addEventListener('keydown', (e) => {
     if (box.hidden) return;
     if (e.key === 'Escape') { closeBox(); return; }
+    if (e.key === 'ArrowRight') { e.preventDefault(); stepBox(1); return; }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); stepBox(-1); return; }
     // 灯箱里只有关闭按钮一个可聚焦元素，Tab 不该跑到背后的页面上去
     if (e.key === 'Tab') {
       e.preventDefault();
@@ -178,7 +195,7 @@
     const meta = [fmtRange(t.start_date, t.end_date), n ? `${n} 张照片` : '', t.subtitle || '']
       .filter(Boolean).join(' · ');
     host.innerHTML = `
-      <article class="feature">
+      <a class="feature" href="/journey.html?id=${encodeURIComponent(t.id)}">
         ${cover ? `<figure class="feature__cover"><img src="${esc(imgSrc(cover.key_thumb))}" alt="${esc(t.title)}"></figure>` : ''}
         <div class="feature__body">
           <p class="kicker">最近一次</p>
@@ -188,8 +205,9 @@
           <div class="feature__mini">
             ${inside.map((p) => `<img src="${esc(imgSrc(p.key_thumb))}" alt="" loading="lazy">`).join('')}
           </div>
+          <p class="feature__more">看这一趟 →</p>
         </div>
-      </article>`;
+      </a>`;
   };
 
   const renderTripIndex = (trips, photos) => {
@@ -203,11 +221,11 @@
       const meta = [fmtRange(t.start_date, t.end_date), n ? `${n} 张照片` : '']
         .filter(Boolean).join(' · ');
       return `
-        <article class="card--flat">
+        <a class="card--flat" href="/journey.html?id=${encodeURIComponent(t.id)}">
           <h3 class="card--flat__title">${esc(t.title)}</h3>
           ${meta ? `<p class="card--flat__meta">${esc(meta)}</p>` : ''}
           ${t.summary ? `<p class="card--flat__summary">${esc(t.summary)}</p>` : ''}
-        </article>`;
+        </a>`;
     }).join('');
   };
 
@@ -250,6 +268,8 @@
   const renderStrip = (photos) => {
     const host = $('film-strip');
     if (!host) return;
+    // 照片太少时胶片条只是在重复照片墙，宁可空着
+    if (photos.length < 8) { host.innerHTML = ''; host.hidden = true; return; }
     const pick = photos.slice().reverse().slice(0, 8);
     host.innerHTML = pick.map((p) => {
       const cap = p.caption || p.place || '';
@@ -268,14 +288,15 @@
   const wallItem = (p) => {
     const cap = p.caption || p.place || '';
     const date = fmtDate(p.shot_at);
+    const ar = (p.width && p.height) ? (p.width / p.height) : 4 / 3;
     return `
-    <figure class="wall__item">
-      <button class="wall__open" type="button" data-web="${esc(p.key_web)}" data-cap="${esc(cap)}" aria-label="查看大图：${esc(cap || '旅行照片')}">
+    <figure class="flow__item" style="flex-grow:${ar.toFixed(3)};flex-basis:${Math.round(ar * 190)}px">
+      <button class="flow__open" type="button" data-web="${esc(p.key_web)}" data-cap="${esc(cap)}" aria-label="查看大图：${esc(cap || '旅行照片')}">
         <img src="${esc(imgSrc(p.key_thumb))}" alt="" loading="lazy">
       </button>
       ${p.place || date ? `<figcaption>
-        <span class="wall__place">${esc(p.place || '')}</span>
-        <span class="wall__date">${esc(date)}</span>
+        <span>${esc(p.place || '')}</span>
+        <span>${esc(date)}</span>
       </figcaption>` : ''}
     </figure>`;
   };
