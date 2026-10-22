@@ -148,6 +148,117 @@
   /* ---------------- 板块视图：清单 / 项目网格 / 书目清单 / 技能分组 ---------------- */
   // 板块给不同的版式，不是一个模板复制五遍；extra 里放着各板块的结构化字段
   const VIEW = { life: 'list', learn: 'list', work: 'grid', media: 'rows', skill: 'groups' };
+
+  /* ---------------- 检索三件套：标签云 / 年表 / 清单-网格切换 ---------------- */
+  // 视图选择按板块记在浏览器里；'rich' = 这一块本来的版式，'flat' = 统一清单
+  const LS_VIEW = 'photosite-view-';
+  const NATURAL_NAME = { grid: '网格', rows: '书目', groups: '分组', list: '卡片' };
+  const viewOf = (section) => {
+    const saved = localStorage.getItem(LS_VIEW + section);
+    if (saved === 'rich' || saved === 'flat') return saved;
+    return (VIEW[section] || 'list') === 'list' ? 'flat' : 'rich';
+  };
+  const tagCounts = (posts) => {
+    const m = new Map();
+    posts.forEach((p) => tagsOf(p.tags).forEach((t) => m.set(t, (m.get(t) || 0) + 1)));
+    return [...m].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'zh'));
+  };
+  const yearCounts = (posts) => {
+    const m = new Map();
+    posts.forEach((p) => {
+      const y = String(p.posted_at || '').slice(0, 4);
+      if (/^\d{4}$/.test(y)) m.set(y, (m.get(y) || 0) + 1);
+    });
+    return [...m].sort((a, b) => b[0].localeCompare(a[0]));
+  };
+  function renderYearbar(host, years, state, onPick) {
+    if (!host) return;
+    if (years.length < 2) {
+      host.innerHTML = '';
+      host.hidden = true;
+      return;
+    }
+    host.hidden = false;
+    host.innerHTML =
+      `<button class="chip" data-year="">全部年份</button>` +
+      years.map(([y, n]) => `<button class="chip" data-year="${esc(y)}">${esc(y)} <b>${n}</b></button>`).join('');
+    const paint = () => host.querySelectorAll('.chip').forEach((b) => b.classList.toggle('on', (b.dataset.year || '') === state.year));
+    paint();
+    host.onclick = (e) => {
+      const b = e.target.closest('.chip');
+      if (!b) return;
+      state.year = b.dataset.year || '';
+      paint();
+      onPick(state.year);
+    };
+  }
+  function renderViewToggle(host, section, state, onChange) {
+    if (!host) return;
+    const natural = VIEW[section] || 'list';
+    const opts = [
+      { v: 'rich', label: NATURAL_NAME[natural] },
+      { v: 'flat', label: '清单' },
+    ];
+    host.innerHTML = opts
+      .map((o) => `<button type="button" data-mode="${o.v}" class="${state.mode === o.v ? 'on' : ''}">${esc(o.label)}</button>`)
+      .join('');
+    host.onclick = (e) => {
+      const b = e.target.closest('[data-mode]');
+      if (!b) return;
+      state.mode = b.dataset.mode;
+      localStorage.setItem(LS_VIEW + section, state.mode);
+      host.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x.dataset.mode === state.mode));
+      onChange();
+    };
+  }
+  // 搜索建议：标题/标签/摘要里命中就出，↑↓ 选，Enter 直接进
+  function suggestFor(input, host, posts) {
+    if (!input || !host) return;
+    let idx = -1;
+    const hide = () => {
+      host.hidden = true;
+      host.innerHTML = '';
+      idx = -1;
+    };
+    const match = (v) => {
+      const q = String(v || '').trim().toLowerCase();
+      if (!q) return [];
+      return posts.filter((p) => [p.title, p.tags, p.excerpt].some((x) => String(x || '').toLowerCase().includes(q))).slice(0, 6);
+    };
+    const paint = (list) => {
+      if (!list.length) return hide();
+      host.hidden = false;
+      host.innerHTML = list
+        .map(
+          (p) =>
+            `<a href="/p/${esc(p.id)}"><span class="s-k">${esc(SECTION_SHORT[p.section] || '')}</span><span class="s-t">${esc(
+              p.title
+            )}</span><span class="s-d">${esc(fmtFull(p.posted_at))}</span></a>`
+        )
+        .join('');
+      idx = -1;
+    };
+    input.addEventListener('input', () => paint(match(input.value)));
+    input.addEventListener('keydown', (e) => {
+      if (host.hidden) return;
+      const items = [...host.querySelectorAll('a')];
+      if (!items.length) return;
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        idx = (idx + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+        items.forEach((a, i) => a.classList.toggle('on', i === idx));
+      } else if (e.key === 'Enter' && idx >= 0) {
+        e.preventDefault();
+        e.stopPropagation();
+        location.href = items[idx].getAttribute('href');
+      } else if (e.key === 'Escape') {
+        hide();
+      }
+    });
+    document.addEventListener('click', (e) => {
+      if (!host.contains(e.target) && e.target !== input) hide();
+    });
+  }
   const EX = (p) => {
     // 服务端一般已经把 extra 解成对象；这里再兜一层，兼容它原样是 JSON 字符串的情况
     let e = p ? p.extra : null;
@@ -227,7 +338,12 @@
     const section = document.body.dataset.section || '';
     navOn('/' + section);
     const params = new URLSearchParams(location.search);
-    const state = { tag: params.get('tag') || '', q: params.get('q') || '' };
+    const state = {
+      tag: params.get('tag') || '',
+      q: params.get('q') || '',
+      year: params.get('year') || '',
+      mode: viewOf(section),
+    };
     const input = $('q');
     if (input) input.value = state.q;
 
@@ -239,34 +355,42 @@
       all = [];
     }
 
-    const tags = [...new Set(all.flatMap((p) => tagsOf(p.tags)))].sort();
     const chips = $('filters');
     chips.innerHTML =
-      `<button class="chip" data-tag="">全部</button>` +
-      tags.map((t) => `<button class="chip" data-tag="${esc(t)}">${esc(t)}</button>`).join('');
+      `<button class="chip" data-tag="">全部 <b>${all.length}</b></button>` +
+      tagCounts(all)
+        .map(([t, n]) => `<button class="chip" data-tag="${esc(t)}">${esc(t)} <b>${n}</b></button>`)
+        .join('');
+    renderYearbar($('yearbar'), yearCounts(all), state, () => render());
+    renderViewToggle($('viewtoggle'), section, state, () => render());
+    suggestFor(input, $('suggest'), all);
 
     function render() {
       const q = state.q.trim().toLowerCase();
       const list = all.filter((p) => {
         if (state.tag && !tagsOf(p.tags).includes(state.tag)) return false;
+        if (state.year && String(p.posted_at || '').slice(0, 4) !== state.year) return false;
         if (!q) return true;
         return [p.title, p.excerpt, p.tags].some((v) => String(v || '').toLowerCase().includes(q));
       });
       chips.querySelectorAll('.chip').forEach((b) => b.classList.toggle('on', (b.dataset.tag || '') === state.tag));
-      $('count').textContent = list.length ? `${list.length} 条${state.tag || q ? ' · 筛选中' : ''}` : '';
+      const active = [state.tag, state.year, state.q.trim()].filter(Boolean);
+      $('count').textContent = list.length ? `${list.length} 条${active.length ? ' · 筛选中' : ''}` : '';
       const host = $('list');
-      const view = VIEW[section] || 'list';
-      host.className = 'plist view-' + view;
+      const natural = VIEW[section] || 'list';
+      host.className = 'plist view-' + state.mode;
       const emptyHTML = `<div class="empty">${
         all.length ? '这一筛没有内容，换个标签或清掉搜索。' : '这块还空着。'
       }<br>内容写在 <a href="/admin">管理页</a>。</div>`;
       if (!list.length) {
         host.innerHTML = emptyHTML;
-      } else if (view === 'grid') {
+      } else if (state.mode === 'flat') {
+        host.innerHTML = list.map(itemHTML).join('');
+      } else if (natural === 'grid') {
         host.innerHTML = `<div class="pgrid">${list.map(workHTML).join('')}</div>`;
-      } else if (view === 'rows') {
+      } else if (natural === 'rows') {
         host.innerHTML = list.map(mediaHTML).join('');
-      } else if (view === 'groups') {
+      } else if (natural === 'groups') {
         const groups = new Map();
         list.forEach((p) => {
           const k = EX(p).group || tagsOf(p.tags)[0] || '其他';
@@ -283,11 +407,13 @@
           )
           .join('');
       } else {
-        host.innerHTML = list.map(itemHTML).join('');
+        host.innerHTML = `<div class="qgrid">${list.map(itemHTML).join('')}</div>`;
       }
       const url = new URL(location.href);
-      state.tag ? url.searchParams.set('tag', state.tag) : url.searchParams.delete('tag');
-      q ? url.searchParams.set('q', state.q.trim()) : url.searchParams.delete('q');
+      const put = (k, v) => (v ? url.searchParams.set(k, v) : url.searchParams.delete(k));
+      put('tag', state.tag);
+      put('year', state.year);
+      put('q', state.q.trim());
       history.replaceState(null, '', url);
     }
 
@@ -443,11 +569,135 @@
     rendered();
   }
 
+  /* ---------------- 全站检索页：板块 + 标签云 + 年份 + 清单/卡片 ---------------- */
+  async function initSearch() {
+    navOn('/search');
+    const params = new URLSearchParams(location.search);
+    const state = {
+      q: params.get('q') || '',
+      section: params.get('section') || '',
+      tag: params.get('tag') || '',
+      year: params.get('year') || '',
+      mode: viewOf('search'),
+    };
+    const input = $('q');
+    if (input) input.value = state.q;
+
+    let all = [];
+    let sections = [];
+    try {
+      const [a, b] = await Promise.all([fetch('/api/posts?limit=500'), fetch('/api/site')]);
+      all = (await a.json()).posts || [];
+      sections = (await b.json()).sections || [];
+    } catch {
+      all = [];
+    }
+
+    const secHost = $('sc-sections');
+    if (secHost) {
+      secHost.innerHTML =
+        `<button class="chip" data-section="">全部 <b>${all.length}</b></button>` +
+        sections
+          .map(
+            (s) =>
+              `<button class="chip" data-section="${esc(s.key)}">${esc(s.name.replace(/(记录|笔记|与项目|与工具箱)$/, ''))} <b>${
+                s.count || 0
+              }</b></button>`
+          )
+          .join('');
+    }
+    const tagHost = $('tagcloud');
+    const tags = tagCounts(all);
+    if (tagHost) {
+      const max = tags.length ? tags[0][1] : 1;
+      tagHost.innerHTML = tags
+        .slice(0, 28)
+        .map(([t, n]) => {
+          const size = n >= max ? 3 : n > 1 ? 2 : 1;
+          return `<button type="button" class="tagpill" data-tag="${esc(t)}" data-size="${size}">${esc(t)}<i>${n}</i></button>`;
+        })
+        .join('');
+    }
+    renderYearbar($('yearbar'), yearCounts(all), state, () => render());
+    renderViewToggle($('viewtoggle'), 'search', state, () => render());
+    suggestFor(input, $('suggest'), all);
+
+    function render() {
+      const q = state.q.trim().toLowerCase();
+      const list = all.filter((p) => {
+        if (state.section && p.section !== state.section) return false;
+        if (state.tag && !tagsOf(p.tags).includes(state.tag)) return false;
+        if (state.year && String(p.posted_at || '').slice(0, 4) !== state.year) return false;
+        if (!q) return true;
+        return [p.title, p.excerpt, p.tags].some((v) => String(v || '').toLowerCase().includes(q));
+      });
+      if (secHost) secHost.querySelectorAll('.chip').forEach((b) => b.classList.toggle('on', (b.dataset.section || '') === state.section));
+      if (tagHost) tagHost.querySelectorAll('.tagpill').forEach((b) => b.classList.toggle('on', (b.dataset.tag || '') === state.tag));
+      const active = [state.section, state.tag, state.year, state.q.trim()].filter(Boolean);
+      $('count').textContent = all.length ? `${list.length} / ${all.length} 条${active.length ? ' · 筛选中' : ''}` : '';
+      const host = $('list');
+      host.className = 'plist view-' + state.mode;
+      if (!all.length) {
+        host.innerHTML = `<div class="empty">还没有内容。<br>内容写在 <a href="/admin">管理页</a>。</div>`;
+      } else if (!list.length) {
+        host.innerHTML = `<div class="empty">没有匹配的。换个词，或者点掉筛选。</div>`;
+      } else if (state.mode === 'rich') {
+        host.innerHTML = `<div class="qgrid">${list.map(itemHTML).join('')}</div>`;
+      } else {
+        host.innerHTML = list.map(itemHTML).join('');
+      }
+      const url = new URL(location.href);
+      const put = (k, v) => (v ? url.searchParams.set(k, v) : url.searchParams.delete(k));
+      put('q', state.q.trim());
+      put('section', state.section);
+      put('tag', state.tag);
+      put('year', state.year);
+      history.replaceState(null, '', url);
+      const kw = state.q.trim();
+      document.title = (kw ? kw + ' · ' : '') + '搜索 · 黄翀与';
+    }
+
+    if (secHost) {
+      secHost.addEventListener('click', (e) => {
+        const b = e.target.closest('.chip');
+        if (!b) return;
+        state.section = b.dataset.section || '';
+        render();
+      });
+    }
+    if (tagHost) {
+      tagHost.addEventListener('click', (e) => {
+        const b = e.target.closest('.tagpill');
+        if (!b) return;
+        const t = b.dataset.tag || '';
+        state.tag = state.tag === t ? '' : t;
+        render();
+      });
+    }
+    const form = $('search');
+    if (form) {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        state.q = input ? input.value : '';
+        render();
+      });
+      if (input) {
+        input.addEventListener('input', () => {
+          state.q = input.value;
+          render();
+        });
+      }
+    }
+    render();
+    rendered();
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     const page = document.body.dataset.page;
     if (page === 'home') initHome();
     else if (page === 'section') initSection();
     else if (page === 'post') initPost();
+    else if (page === 'search') initSearch();
     else if (page === 'about') { navOn('/about'); rendered(); }
   });
 })();
