@@ -195,7 +195,7 @@
     const meta = [fmtRange(t.start_date, t.end_date), n ? `${n} 张照片` : '', t.subtitle || '']
       .filter(Boolean).join(' · ');
     host.innerHTML = `
-      <a class="feature" href="/journey.html?id=${encodeURIComponent(t.id)}">
+      <a class="feature" href="/journey?id=${encodeURIComponent(t.id)}">
         ${cover ? `<figure class="feature__cover"><img src="${esc(imgSrc(cover.key_thumb))}" alt="${esc(t.title)}"></figure>` : ''}
         <div class="feature__body">
           <p class="kicker">最近一次</p>
@@ -221,7 +221,7 @@
       const meta = [fmtRange(t.start_date, t.end_date), n ? `${n} 张照片` : '']
         .filter(Boolean).join(' · ');
       return `
-        <a class="card--flat" href="/journey.html?id=${encodeURIComponent(t.id)}">
+        <a class="card--flat" href="/journey?id=${encodeURIComponent(t.id)}">
           <h3 class="card--flat__title">${esc(t.title)}</h3>
           ${meta ? `<p class="card--flat__meta">${esc(meta)}</p>` : ''}
           ${t.summary ? `<p class="card--flat__summary">${esc(t.summary)}</p>` : ''}
