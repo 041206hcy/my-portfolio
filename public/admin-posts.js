@@ -24,6 +24,39 @@
     const p = (n) => String(n).padStart(2, '0');
     return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
   };
+  // 与服务端同字符集：新建内容时先在浏览器里生成 id，这样封面图可以先传，再带着 cover_key 一起保存
+  const newId = (n = 16) => {
+    const a = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let s = '';
+    for (let i = 0; i < n; i += 1) s += a[Math.floor(Math.random() * a.length)];
+    return s;
+  };
+  const coverKey = () => ($('post-cover-key') ? $('post-cover-key').value : '');
+  const paintCover = () => {
+    const img = $('post-cover-prev');
+    if (!img) return;
+    const key = coverKey();
+    if (key) {
+      img.src = '/img/' + key;
+      img.hidden = false;
+    } else {
+      img.removeAttribute('src');
+      img.hidden = true;
+    }
+  };
+  // 浏览器里压到最长边 1600 的 WebP —— 和照片上传同一条路子，Worker 只收字节
+  async function encode(file, maxEdge = 1600, quality = 0.82) {
+    const bmp = await createImageBitmap(file, { imageOrientation: 'from-image' });
+    const scale = Math.min(1, maxEdge / Math.max(bmp.width, bmp.height));
+    const w = Math.max(1, Math.round(bmp.width * scale));
+    const h = Math.max(1, Math.round(bmp.height * scale));
+    const cv = document.createElement('canvas');
+    cv.width = w;
+    cv.height = h;
+    cv.getContext('2d').drawImage(bmp, 0, 0, w, h);
+    const blob = await new Promise((r) => cv.toBlob(r, 'image/webp', quality));
+    return blob || (await new Promise((r) => cv.toBlob(r, 'image/jpeg', quality)));
+  }
 
   async function api(path, init) {
     const res = await fetch(path, {
@@ -85,6 +118,8 @@
     $('post-vis').value = p.visibility || 'public';
     $('post-body').value = p.body || '';
     $('post-extra').value = p.extra && typeof p.extra === 'object' ? JSON.stringify(p.extra) : '';
+    if ($('post-cover-key')) $('post-cover-key').value = p.cover_key || '';
+    paintCover();
   }
 
   function reset(scroll) {
@@ -105,6 +140,7 @@
       posted_at: $('post-date').value || today(),
       visibility: $('post-vis').value,
       body: $('post-body').value,
+      cover_key: coverKey(),
     };
     if (!payload.title) return hint('标题不能空。');
     // 附加信息：可留空。板块不同字段不同（作品 year/role/link/cover，书影音 kind/creator/rating/progress，技能 group/level）
@@ -137,6 +173,48 @@
     if (!form) return;
     form.addEventListener('submit', save);
     $('post-reset').addEventListener('click', () => reset(true));
+    const fileEl = $('post-cover-file');
+    if (fileEl) {
+      fileEl.addEventListener('change', async () => {
+        const f = fileEl.files && fileEl.files[0];
+        if (!f) return;
+        const st = $('post-cover-state');
+        if (!$('post-id').value.trim()) $('post-id').value = newId();
+        const pid = $('post-id').value;
+        if (st) st.textContent = '压缩中……';
+        try {
+          const blob = await encode(f);
+          if (st) st.textContent = `上传中（${Math.round(blob.size / 1024)} KB）……`;
+          const res = await fetch(`/api/admin/blob?pid=${encodeURIComponent(pid)}&kind=cover`, {
+            method: 'POST',
+            headers: { 'x-admin-token': token(), 'content-type': blob.type || 'image/webp' },
+            body: blob,
+          });
+          if (res.status === 401) {
+            if (st) st.textContent = '需要管理口令：先在页面最上面粘贴口令并保存。';
+            return;
+          }
+          const d = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(d.error || 'HTTP ' + res.status);
+          $('post-cover-key').value = d.key || `photos/${pid}/cover.webp`;
+          paintCover();
+          if (st) st.textContent = '封面已上传，别忘了点「保存」。没保存就刷新会丢。';
+        } catch (err) {
+          if (st) st.textContent = '封面没传成功：' + err.message;
+        } finally {
+          fileEl.value = '';
+        }
+      });
+    }
+    const clearEl = $('post-cover-clear');
+    if (clearEl) {
+      clearEl.addEventListener('click', () => {
+        if ($('post-cover-key')) $('post-cover-key').value = '';
+        paintCover();
+        const st = $('post-cover-state');
+        if (st) st.textContent = '移除会随「保存」一起生效。';
+      });
+    }
     $('post-admin-list').addEventListener('click', async (e) => {
       const del = e.target.closest('[data-del]');
       if (del) {
