@@ -33,13 +33,17 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
-    // http → https 强制跳转。
+    // 规范化跳转：http → https，www → 裸域。
     // 域名由 Cloudflare 代理，TLS 在边缘终止，所以原始协议看 x-forwarded-proto；
     // 仪表板里的 Always Use HTTPS 需要有 zone 权限的令牌才能开，改在 Worker 里做等价的事。
-    if ((request.headers.get('x-forwarded-proto') || '').toLowerCase() === 'http') {
-      const secure = new URL(request.url);
-      secure.protocol = 'https:';
-      return Response.redirect(secure.toString(), 301);
+    // （注意：静态资源默认由边缘直接返回、不进 Worker，所以 wrangler.jsonc 里开了 run_worker_first。）
+    const wantsHttps = (request.headers.get('x-forwarded-proto') || '').toLowerCase() === 'http';
+    const wantsApex = url.hostname.startsWith('www.');
+    if (wantsHttps || wantsApex) {
+      const target = new URL(request.url);
+      target.protocol = 'https:';
+      if (wantsApex) target.hostname = url.hostname.slice(4);
+      return Response.redirect(target.toString(), 301);
     }
 
     try {
