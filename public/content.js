@@ -82,7 +82,7 @@
       ]);
     $('sections').innerHTML = cards
       .map(
-        (c, i) => `<a class="cell${i === cards.length - 1 ? ' cell--wide' : ''}" href="${esc(c.href)}" data-rb="glare" data-rb-opacity="0.22">
+        (c, i) => `<a class="cell${i === cards.length - 1 ? ' cell--wide' : ''}" href="${esc(c.href)}" data-rb="glare tilt reveal" data-rb-opacity="0.22">
         <span class="cell__no">${String(i + 1).padStart(2, '0')}</span>
         <h3 class="cell__t">${esc(c.name)}</h3>
         <p class="cell__d">${esc(c.desc)}</p>
@@ -96,7 +96,7 @@
     if (latest.length) {
       $('latest').innerHTML = latest
         .map(
-          (p) => `<a class="row" href="/p/${esc(p.id)}">
+          (p) => `<a class="row" href="/p/${esc(p.id)}" data-rb="reveal" data-rb-delay="0">
         <span class="row__d">${esc(fmtDate(p.posted_at))}</span>
         <span class="row__k">${esc(SECTION_SHORT[p.section] || p.section)}</span>
         <span class="row__t">${esc(p.title)}</span>
@@ -120,7 +120,7 @@
       ? `<div class="strip">${photos
           .map(
             (p) =>
-              `<a href="/journeys" title="${esc(p.place || p.caption || '')}"><img src="/img/${esc(p.key_thumb || '')}" alt="${esc(
+              `<a href="/journeys" data-rb="tilt" data-rb-tilt="2.2" title="${esc(p.place || p.caption || '')}"><img src="/img/${esc(p.key_thumb || '')}" alt="${esc(
                 p.place || p.caption || '照片'
               )}" loading="lazy"></a>`
           )
@@ -132,7 +132,7 @@
   }
 
   /* ---------------- 板块页：筛选 + 搜索 + 列表 ---------------- */
-  const itemHTML = (p) => `<a class="pitem" href="/p/${esc(p.id)}">
+  const itemHTML = (p) => `<a class="pitem" href="/p/${esc(p.id)}" data-rb="glare tilt reveal">
       <span class="pitem__d">${esc(fmtFull(p.posted_at))}</span>
       <span>
         <h2 class="pitem__t">${esc(p.title)}</h2>
@@ -144,6 +144,84 @@
         }
       </span>
     </a>`;
+
+  /* ---------------- 板块视图：清单 / 项目网格 / 书目清单 / 技能分组 ---------------- */
+  // 板块给不同的版式，不是一个模板复制五遍；extra 里放着各板块的结构化字段
+  const VIEW = { life: 'list', learn: 'list', work: 'grid', media: 'rows', skill: 'groups' };
+  const EX = (p) => {
+    // 服务端一般已经把 extra 解成对象；这里再兜一层，兼容它原样是 JSON 字符串的情况
+    let e = p ? p.extra : null;
+    if (typeof e === 'string' && e.trim()) {
+      try {
+        e = JSON.parse(e);
+      } catch {
+        e = null;
+      }
+    }
+    return e && typeof e === 'object' && !Array.isArray(e) ? e : {};
+  };
+  const coverOf = (p) => {
+    const k = p.cover_key || EX(p).cover || '';
+    return k ? '/img/' + encodeURIComponent(k) : '';
+  };
+  const linkOf = (p) => {
+    const e = EX(p);
+    const u = e.link || e.repo || '';
+    return /^https?:\/\//.test(String(u)) ? String(u) : '';
+  };
+
+  const workHTML = (p) => {
+    const e = EX(p);
+    const cover = coverOf(p);
+    const href = linkOf(p);
+    const meta = [e.role, e.year, e.status].filter(Boolean).map(esc).join(' · ');
+    const tags = tagsOf(p.tags).map((t) => `<span class="tag">${esc(t)}</span>`).join('');
+    return `<div class="pcard" data-rb="glare tilt reveal">
+      <a class="pcard__hit" href="/p/${esc(p.id)}" aria-label="${esc(p.title)}"></a>
+      ${
+        cover
+          ? `<span class="pcard__fig"><img src="${esc(cover)}" alt="" loading="lazy"></span>`
+          : `<span class="pcard__fig pcard__fig--blank"><span>${esc(String(e.year || '').slice(0, 4) || 'PROJ')}</span></span>`
+      }
+      <span class="pcard__b">
+        <span class="pcard__k">${esc(e.year || fmtDate(p.posted_at))}</span>
+        <h2 class="pcard__t">${esc(p.title)}</h2>
+        ${p.excerpt ? `<p class="pcard__x">${esc(p.excerpt)}</p>` : ''}
+        ${meta ? `<span class="pcard__m">${meta}</span>` : ''}
+        ${tags ? `<span class="pcard__tags">${tags}</span>` : ''}
+      </span>
+      ${href ? `<a class="pcard__out" href="${esc(href)}" target="_blank" rel="noopener">打开项目 ↗</a>` : ''}
+    </div>`;
+  };
+
+  const KIND = { book: '书', film: '影', tv: '剧', music: '音', podcast: '播客', game: '游戏' };
+  const mediaHTML = (p) => {
+    const e = EX(p);
+    const kind = KIND[String(e.kind || '').toLowerCase()] || e.kind || '记录';
+    const n = Math.max(0, Math.min(5, Math.round(Number(e.rating) || 0)));
+    const stars = n ? '★'.repeat(n) + '☆'.repeat(5 - n) : '';
+    const by = [e.creator, e.year].filter(Boolean).map(esc).join(' · ');
+    return `<a class="mrow" href="/p/${esc(p.id)}" data-rb="reveal" data-rb-delay="0">
+      <span class="mrow__k">${esc(kind)}</span>
+      <span class="mrow__b">
+        <span class="mrow__t">${esc(p.title)}</span>
+        ${by ? `<span class="mrow__c">${by}</span>` : ''}
+        ${p.excerpt ? `<span class="mrow__x">${esc(p.excerpt)}</span>` : ''}
+      </span>
+      <span class="mrow__r">${stars ? `<span class="mrow__s">${stars}</span>` : ''}${
+        e.progress ? `<b>${esc(e.progress)}</b>` : ''
+      }</span>
+    </a>`;
+  };
+
+  const skillHTML = (p) => {
+    const e = EX(p);
+    return `<a class="sitem" href="/p/${esc(p.id)}" data-rb="glare tilt reveal">
+      <span class="sitem__t">${esc(p.title)}</span>
+      ${e.level ? `<span class="sitem__l">${esc(e.level)}</span>` : ''}
+      ${p.excerpt ? `<span class="sitem__x">${esc(p.excerpt)}</span>` : ''}
+    </a>`;
+  };
 
   async function initSection() {
     const section = document.body.dataset.section || '';
@@ -176,11 +254,37 @@
       });
       chips.querySelectorAll('.chip').forEach((b) => b.classList.toggle('on', (b.dataset.tag || '') === state.tag));
       $('count').textContent = list.length ? `${list.length} 条${state.tag || q ? ' · 筛选中' : ''}` : '';
-      $('list').innerHTML = list.length
-        ? list.map(itemHTML).join('')
-        : `<div class="empty">${
-            all.length ? '这一筛没有内容，换个标签或清掉搜索。' : '这块还空着。'
-          }<br>内容写在 <a href="/admin">管理页</a>。</div>`;
+      const host = $('list');
+      const view = VIEW[section] || 'list';
+      host.className = 'plist view-' + view;
+      const emptyHTML = `<div class="empty">${
+        all.length ? '这一筛没有内容，换个标签或清掉搜索。' : '这块还空着。'
+      }<br>内容写在 <a href="/admin">管理页</a>。</div>`;
+      if (!list.length) {
+        host.innerHTML = emptyHTML;
+      } else if (view === 'grid') {
+        host.innerHTML = `<div class="pgrid">${list.map(workHTML).join('')}</div>`;
+      } else if (view === 'rows') {
+        host.innerHTML = list.map(mediaHTML).join('');
+      } else if (view === 'groups') {
+        const groups = new Map();
+        list.forEach((p) => {
+          const k = EX(p).group || tagsOf(p.tags)[0] || '其他';
+          if (!groups.has(k)) groups.set(k, []);
+          groups.get(k).push(p);
+        });
+        host.innerHTML = [...groups]
+          .map(
+            ([k, arr]) =>
+              `<section class="sgroup" data-rb="reveal" data-rb-delay="0">
+                 <h2 class="sgroup__k">${esc(k)}<span>${arr.length}</span></h2>
+                 <div class="sgroup__items">${arr.map(skillHTML).join('')}</div>
+               </section>`
+          )
+          .join('');
+      } else {
+        host.innerHTML = list.map(itemHTML).join('');
+      }
       const url = new URL(location.href);
       state.tag ? url.searchParams.set('tag', state.tag) : url.searchParams.delete('tag');
       q ? url.searchParams.set('q', state.q.trim()) : url.searchParams.delete('q');
@@ -344,5 +448,6 @@
     if (page === 'home') initHome();
     else if (page === 'section') initSection();
     else if (page === 'post') initPost();
+    else if (page === 'about') { navOn('/about'); rendered(); }
   });
 })();
